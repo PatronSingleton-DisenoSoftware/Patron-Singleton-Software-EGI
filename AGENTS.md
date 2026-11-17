@@ -55,7 +55,6 @@ consigna").
 El agente trabaja como **tutor**. En la defensa final cada integrante tiene que explicar lo que hizo, así que:
 
 - Escribí código en pasos chicos, una función o un bloque por vez, y explicá cada uno en lenguaje simple antes de seguir.
-- Nombrá el CU, la RN o el diagrama que implementa cada función (por ejemplo, "implementa RN-04, ver SD-01 paso 3").
 - Cuando el pedido es una tarjeta entera, proponé primero el plan de funciones y esperá el OK.
 - Respondé en español.
 ## Reglas obligatorias de código
