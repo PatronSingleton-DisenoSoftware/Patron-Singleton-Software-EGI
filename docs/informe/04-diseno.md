@@ -1,8 +1,10 @@
 # 4. Diseño arquitectónico
 
-> Este capítulo define el **diseño cerrado**. El código todavía no lo implementa en su
-> totalidad: la brecha exacta está en [Implementación §5.5](05-implementacion.md#55-brecha-entre-diseño-e-implementación).
-> Las decisiones que modifican el planteo original están justificadas en
+> Este capítulo describe la **estructura implementada** en `src/` (rama `main`) y las
+> decisiones de diseño que la acompañan. La lógica de negocio todavía no está
+> implementada: la brecha exacta está en
+> [Implementación §5.5](05-implementacion.md#55-brecha-entre-diseño-e-implementación).
+> Las decisiones que no se aplicaron están marcadas en
 > [Decisiones de diseño](09-decisiones.md).
 
 ## 4.1. Clases identificadas
@@ -14,8 +16,8 @@
 | `Sector` | Área del edificio con acceso restringido. |
 | `Permiso` | Autorización que relaciona un empleado con un sector. |
 | `RegistroAcceso` | Historial de los intentos de ingreso. |
-| `NivelAcceso` | Enumeración con los cinco niveles de seguridad (1 a 5). |
-| `TipoPermiso` | Enumeración que distingue permiso estándar de especial. |
+| `NivelAcceso` | Enumeración con los cinco niveles (`NIVEL_1` a `NIVEL_5`). |
+| `TipoPermiso` | **No existe**: el permiso especial se distingue con `Permiso.especial`. |
 
 ## 4.2. `ControlAcceso`
 
@@ -50,22 +52,21 @@ bajo el patrón Singleton.
 
 ### Interfaz pública
 
-| Método | Resultado |
-|--------|-----------|
-| `getInstancia()` | Única instancia del gestor. |
-| `registrarEmpleado(Empleado)` | Alta en la colección de empleados. |
-| `registrarSector(Sector)` | Alta en la colección de sectores. |
-| `buscarEmpleado(int)` | Empleado por identificación, o `null`. |
-| `buscarSector(int)` | Sector por identificación, o `null`. |
-| `asignarNivelAcceso(int, NivelAcceso)` | Actualiza el nivel del empleado. |
-| `concederPermiso(Empleado, Sector, TipoPermiso)` | Crea o reactiva un permiso. |
-| `revocarPermiso(Empleado, Sector)` | Marca el permiso como inactivo (no lo borra). |
-| `verificarAcceso(Empleado, Sector)` | `true` si puede ingresar. **No registra.** |
-| `registrarIntento(Empleado, Sector)` | Verifica, arma el motivo, guarda y devuelve el `RegistroAcceso`. |
-| `obtenerHistorial()` | Copia de la lista de registros. |
+| Método | Resultado | Estado |
+|--------|-----------|--------|
+| `getInstance()` | Única instancia del gestor. | ✅ Implementado |
+| `registrarEmpleado(Empleado)` | Alta en la colección de empleados. | ⚠️ Firma declarada, cuerpo pendiente |
+| `registrarSector(Sector)` | Alta en la colección de sectores. | ⚠️ Firma declarada, cuerpo pendiente |
+| `asignarNivel(Empleado, NivelAcceso)` | Actualiza el nivel del empleado. | ⚠️ Firma declarada, cuerpo pendiente |
+| `concederPermiso(Permiso)` | Agrega la autorización a la colección. | ⚠️ Firma declarada, cuerpo pendiente |
+| `revocarPermiso(Permiso)` | Delega la baja lógica en el permiso. | ⚠️ Firma declarada, cuerpo pendiente |
+| `verificarAcceso(int, int)` | `true` si el empleado puede ingresar al sector. | ❌ Devuelve `false` fijo |
+| `consultarHistorial()` | Devuelve el historial de registros. | ❌ Devuelve `null` |
 
-La separación entre **verificar** y **registrar** está justificada en
-[ADR-06](09-decisiones.md#adr-06-separar-verificar-de-registrar).
+> El **diseño previo** proponía además `buscarEmpleado(int)`, `buscarSector(int)`,
+> `registrarIntento(Empleado, Sector)` y `obtenerHistorial()` como lista. Esos métodos
+> **no existen en el código actual**; la brecha está registrada en
+> [ADR-06](09-decisiones.md#adr-06-separar-verificar-de-registrar).
 
 ## 4.3. `Empleado`
 
@@ -80,16 +81,19 @@ ingresar a los sectores del edificio.
 | `dni` | `private int` | Número de identidad. |
 | `nombre` | `private String` | Nombre. |
 | `apellido` | `private String` | Apellido. |
-| `nivelAcceso` | `private NivelAcceso` | Nivel de acceso asignado. |
+| `nivelAcesso` | `private NivelAcceso` | Nivel de acceso asignado. |
 
 ### Responsabilidades
 
 - Almacenar los datos del empleado.
 - Proporcionar su identificación, nombre y apellido.
-- Exponer el nivel de acceso que tiene asignado.
+- Exponer y modificar el nivel de acceso que tiene asignado.
 
-> El nivel se modela con el enum `NivelAcceso` y no con `int`. Ver
-> [ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum).
+> El nivel se modela con el enum `NivelAcceso` y no con `int`, como pedía
+> [ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum). El enum existe, pero todavía
+> no encapsula la comparación acumulativa. El atributo del código se llama
+> `nivelAcesso` (con una «c» de más); el nombre está pendiente de corregir o de aceptar
+> formalmente.
 
 ## 4.4. `Sector`
 
@@ -99,7 +103,7 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 
 | Atributo | Tipo | Descripción |
 |----------|------|-------------|
-| `identificacion` | `private int` | Identificador único del sector. |
+| `idS` | `private int` | Identificador único del sector. |
 | `nombre` | `private String` | Nombre del sector. |
 | `nivelRequerido` | `private NivelAcceso` | Nivel mínimo necesario para ingresar. |
 
@@ -109,8 +113,10 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 - Proporcionar el nombre del área a la que se intenta ingresar.
 - Establecer el nivel de acceso requerido para cada sector.
 
-> El atributo `idS` del planteo original se renombra a `identificacion` para respetar la
-> convención de nombres del proyecto. Ver [ADR-04](09-decisiones.md#adr-04-identificacion-en-lugar-de-ids).
+> El código conserva `idS`, el nombre del planteo original. El
+> [ADR-04](09-decisiones.md#adr-04-identificacion-en-lugar-de-ids) proponía renombrarlo
+> a `identificacion`; **esa decisión no se aplicó**. `Sector` tampoco tiene setters
+> todavía.
 
 ## 4.5. `Permiso`
 
@@ -123,7 +129,7 @@ Representa la autorización que relaciona a un empleado con un sector determinad
 | `empleado` | `private Empleado` | Empleado al que pertenece la autorización. |
 | `sector` | `private Sector` | Sector para el cual se concede el permiso. |
 | `activo` | `private boolean` | `true` si está vigente; `false` si fue revocado. |
-| `tipo` | `private TipoPermiso` | `ESTANDAR` o `ESPECIAL`. |
+| `especial` | `private boolean` | `true` si es un permiso especial. |
 
 ### Responsabilidades
 
@@ -134,15 +140,16 @@ Representa la autorización que relaciona a un empleado con un sector determinad
 
 ### Métodos propios
 
-| Método | Resultado |
-|--------|-----------|
-| `estaActivo()` | `true` si el permiso está vigente. |
-| `revocar()` | `activo = false`. |
-| `activar()` | `activo = true` (reactivación de un permiso existente). |
-| `esEspecial()` | `tipo == TipoPermiso.ESPECIAL`. |
+| Método | Resultado | Estado |
+|--------|-----------|--------|
+| `estaActivo()` | `true` si el permiso está vigente. | ✅ Implementado |
+| `esEspecial()` | `true` si `especial` es verdadero. | ✅ Implementado |
+| `revocar()` | Debería poner `activo = false`. | ⚠️ Declarado, cuerpo vacío |
+| `activar()` | Reactivación de un permiso existente. | ❌ No existe |
 
-> `tipo` no tenía tipo declarado en el planteo; se resuelve con el enum `TipoPermiso`.
-> Ver [ADR-02](09-decisiones.md#adr-02-tipopermiso-como-enum).
+> El [ADR-02](09-decisiones.md#adr-02-tipopermiso-como-enum) proponía un enum
+> `TipoPermiso`; el código usa `boolean especial` y `TipoPermiso.java` no existe. La
+> decisión está **no aplicada** y se revisa en el Anexo del documento de entrega.
 
 ## 4.6. `RegistroAcceso`
 
@@ -166,73 +173,72 @@ Almacena la información de cada intento de ingreso realizado por un empleado.
 
 ### Construcción
 
-El registro se crea con `empleado`, `sector`, `autorizado` y `motivo`; la **fecha y hora
-la asigna el propio registro** con `LocalDateTime.now()`, para que un llamador no pueda
-falsear el momento del intento.
+El diseño prevé crear el registro con `empleado`, `sector`, `autorizado` y `motivo`, y
+que la **fecha y hora las asigne el propio registro** con `LocalDateTime.now()`, para que
+un llamador no pueda falsear el momento del intento.
 
-> `fechaHora` era `String` en el planteo; se cambia a `LocalDateTime` para poder ordenar
-> y filtrar el historial. Ver [ADR-03](09-decisiones.md#adr-03-fechahora-como-localdatetime).
+> El código actual tiene el constructor **vacío** y no asigna `fechaHora`; tampoco expone
+> `getEmpleado()` ni `getSector()`. El tipo `LocalDateTime` sí está aplicado
+> ([ADR-03](09-decisiones.md#adr-03-fechahora-como-localdatetime) parcial).
 
 ## 4.7. `NivelAcceso` (enumeración)
 
-| Constante | Valor | Alcance |
-|-----------|-------|---------|
-| `GENERAL` | 1 | Áreas comunes. |
-| `INTERNO` | 2 | Oficinas administrativas, Recursos Humanos. |
-| `RESTRINGIDO` | 3 | Áreas con información sensible. |
-| `TECNICO` | 4 | Sala de servidores. |
-| `DIRECTIVO` | 5 | Dirección. |
+| Constante | Alcance |
+|-----------|---------|
+| `NIVEL_1` | Áreas comunes (acceso general). |
+| `NIVEL_2` | Oficinas administrativas, Recursos Humanos (acceso interno). |
+| `NIVEL_3` | Áreas con información sensible (acceso restringido). |
+| `NIVEL_4` | Sala de servidores (acceso técnico). |
+| `NIVEL_5` | Dirección (acceso directivo). |
 
-El enum encapsula el valor numérico y la comparación acumulativa:
+El código actual del enum no guarda un valor numérico ni expone métodos:
 
 ```java
 public enum NivelAcceso {
-    GENERAL(1), INTERNO(2), RESTRINGIDO(3), TECNICO(4), DIRECTIVO(5);
-
-    private final int nivel;
-
-    NivelAcceso(int nivel) {
-        this.nivel = nivel;
-    }
-
-    public int getNivel() {
-        return nivel;
-    }
-
-    public boolean alcanzaA(NivelAcceso requerido) {
-        return this.nivel >= requerido.nivel;
-    }
+    NIVEL_1, // Acceso General
+    NIVEL_2, // Acceso Interno
+    NIVEL_3, // Acceso Restringido
+    NIVEL_4, // Acceso Tecnico
+    NIVEL_5  // Acceso Directivo
 }
 ```
 
-Consecuencia: un empleado con `RESTRINGIDO` (3) alcanza a los sectores que requieren
-`GENERAL`, `INTERNO` y `RESTRINGIDO`.
+La comparación acumulativa se hará con el **orden de declaración**: `NIVEL_3` alcanza a
+`NIVEL_1`, `NIVEL_2` y `NIVEL_3` porque su `ordinal()` es mayor o igual. Esa comparación
+todavía no está encapsulada en el enum; el
+[ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum) queda **parcialmente aplicado**.
 
-## 4.8. `TipoPermiso` (enumeración)
+## 4.8. `TipoPermiso` (no implementado)
 
-| Constante | Significado |
-|-----------|-------------|
-| `ESTANDAR` | Autorización ordinaria. |
-| `ESPECIAL` | Autorización que habilita el ingreso aunque el nivel sea insuficiente. |
+El diseño proponía `enum TipoPermiso { ESTANDAR, ESPECIAL }`. El código **no tiene ese
+archivo**: el permiso especial se representa con `Permiso.especial` (`boolean`). En
+consecuencia, el [ADR-02](09-decisiones.md#adr-02-tipopermiso-como-enum) **no está
+aplicado**. Las pruebas y el UML usan `boolean especial`, no el enum.
 
 ## 4.9. Relaciones y funcionamiento
 
 - Un empleado tiene asignado **un nivel de acceso** y puede contar con **permisos
   especiales** para sectores determinados.
 - Cada sector establece el **nivel mínimo** requerido.
-- Cuando un empleado intenta ingresar, `ControlAcceso`:
-  1. compara `empleado.getNivelAcceso().alcanzaA(sector.getNivelRequerido())`;
-  2. si no alcanza, busca un permiso `ESPECIAL` **activo** para ese par empleado–sector;
-  3. autoriza o rechaza;
-  4. registra el intento con fecha/hora y, si rechaza, con el motivo.
+- Cuando un empleado intenta ingresar, `ControlAcceso` deberá:
+  1. comparar el `ordinal()` de `empleado.getNivelAcesso()` con el de
+     `sector.getNivelRequerido()`;
+  2. si no alcanza, buscar un permiso con `esEspecial() && estaActivo()` para ese par
+     empleado–sector;
+  3. autorizar o rechazar;
+  4. registrar el intento con fecha/hora y, si rechaza, con el motivo.
 - Los permisos se revocan **conservando su información** (`activo = false`), para mantener
   el registro de las autorizaciones concedidas.
 
+> Los pasos 1 a 4 son el comportamiento **previsto**. En el código actual
+> `verificarAcceso(int, int)` devuelve `false`, `revocar()` está vacío y no existe el
+> método que registra el intento.
+
 ### Ejemplo
 
-> Un empleado con nivel `INTERNO` (2) puede ingresar a Administración y Recursos Humanos
-> (niveles 1 y 2). No puede ingresar a la Sala de servidores (nivel 4) **salvo que tenga
-> un permiso especial activo**.
+> Un empleado con nivel `NIVEL_2` puede ingresar a Administración y Recursos Humanos
+> (`NIVEL_1` y `NIVEL_2`). No puede ingresar a la Sala de servidores (`NIVEL_4`) **salvo
+> que tenga un permiso especial activo**.
 
 ## 4.10. Diagrama de clases
 
@@ -247,17 +253,14 @@ classDiagram
         -List~Permiso~ permisos
         -List~RegistroAcceso~ registros
         -ControlAcceso()
-        +static ControlAcceso getInstancia()
+        +static ControlAcceso getInstance()
         +void registrarEmpleado(Empleado)
         +void registrarSector(Sector)
-        +Empleado buscarEmpleado(int)
-        +Sector buscarSector(int)
-        +void asignarNivelAcceso(int, NivelAcceso)
-        +void concederPermiso(Empleado, Sector, TipoPermiso)
-        +void revocarPermiso(Empleado, Sector)
-        +boolean verificarAcceso(Empleado, Sector)
-        +RegistroAcceso registrarIntento(Empleado, Sector)
-        +List~RegistroAcceso~ obtenerHistorial()
+        +void asignarNivel(Empleado, NivelAcceso)
+        +void concederPermiso(Permiso)
+        +void revocarPermiso(Permiso)
+        +boolean verificarAcceso(int, int)
+        +RegistroAcceso consultarHistorial()
     }
 
     class Empleado {
@@ -265,24 +268,38 @@ classDiagram
         -int dni
         -String nombre
         -String apellido
-        -NivelAcceso nivelAcceso
+        -NivelAcceso nivelAcesso
+        +Empleado(int, int, String, String, NivelAcceso)
+        +int getIdentificacion()
+        +int getDni()
+        +String getNombre()
+        +String getApellido()
+        +NivelAcceso getNivelAcesso()
+        +void setNivelAcesso(NivelAcceso)
+        +String toString()
     }
 
     class Sector {
-        -int identificacion
+        -int idS
         -String nombre
         -NivelAcceso nivelRequerido
+        +Sector()
+        +int getIdS()
+        +String getNombre()
+        +NivelAcceso getNivelRequerido()
     }
 
     class Permiso {
         -Empleado empleado
         -Sector sector
         -boolean activo
-        -TipoPermiso tipo
+        -boolean especial
+        +Permiso()
+        +Empleado getEmpleado()
+        +Sector getSector()
         +boolean estaActivo()
-        +void revocar()
-        +void activar()
         +boolean esEspecial()
+        +void revocar()
     }
 
     class RegistroAcceso {
@@ -291,24 +308,19 @@ classDiagram
         -LocalDateTime fechaHora
         -boolean autorizado
         -String motivo
+        +RegistroAcceso()
+        +LocalDateTime getFechaHora()
+        +boolean isAutorizado()
+        +String getMotivo()
     }
 
     class NivelAcceso {
         <<enumeration>>
-        GENERAL
-        INTERNO
-        RESTRINGIDO
-        TECNICO
-        DIRECTIVO
-        -int nivel
-        +int getNivel()
-        +boolean alcanzaA(NivelAcceso)
-    }
-
-    class TipoPermiso {
-        <<enumeration>>
-        ESTANDAR
-        ESPECIAL
+        NIVEL_1
+        NIVEL_2
+        NIVEL_3
+        NIVEL_4
+        NIVEL_5
     }
 
     ControlAcceso "1" o-- "*" Empleado : administra
@@ -321,7 +333,6 @@ classDiagram
     RegistroAcceso --> Sector
     Empleado --> NivelAcceso
     Sector --> NivelAcceso
-    Permiso --> TipoPermiso
 ```
 
 ## 4.11. Aplicación del patrón Singleton
@@ -341,15 +352,15 @@ Esta organización:
 
 ## 4.12. Reglas de negocio del dominio
 
-| ID | Regla |
-|----|-------|
-| RN-01 | Un empleado con nivel *N* puede ingresar a todo sector cuyo `nivelRequerido <= N`. |
-| RN-02 | Un permiso `ESPECIAL` **activo** permite el ingreso aunque el nivel sea insuficiente. |
-| RN-03 | Un permiso revocado (`activo == false`) no habilita el ingreso y no se elimina. |
-| RN-04 | Todo intento se registra, sea autorizado o rechazado. |
-| RN-05 | Todo rechazo debe registrar un `motivo`. |
-| RN-06 | La revocación de un permiso es visible de inmediato para todos los sectores, porque existe una única instancia del gestor (patrón Singleton). |
-| RN-07 | Solo se concede un permiso a un empleado y un sector que existan en el sistema. |
+| ID | Regla | Estado en el código |
+|----|-------|---------------------|
+| RN-01 | Un empleado con nivel *n* puede ingresar a todo sector cuyo `nivelRequerido` sea `NIVEL_1` … `NIVEL_n`, según el orden de declaración del enum. | ❌ `verificarAcceso()` devuelve `false` fijo |
+| RN-02 | Un permiso con `especial == true` y `activo == true` permite el ingreso aunque el nivel sea insuficiente. | ❌ Sin lógica de permisos |
+| RN-03 | Un permiso revocado (`activo == false`) no habilita el ingreso y no se elimina. | ❌ `revocar()` está vacío |
+| RN-04 | Todo intento se registra, sea autorizado o rechazado. | ❌ No hay método de registro |
+| RN-05 | Todo rechazo debe registrar un `motivo`. | ❌ No hay método de registro |
+| RN-06 | La revocación de un permiso es visible de inmediato para todos los sectores, porque existe una única instancia del gestor (patrón Singleton). | ✅ La instancia única existe; falta la operación |
+| RN-07 | Solo se concede un permiso a un empleado y un sector que existan en el sistema. | ❌ Sin lógica de permisos |
 
 > La numeración `RN-xx` es la que se usará en las tarjetas de implementación y en las
 > pruebas. Si se adopta otra numeración, este documento y [Pruebas](06-pruebas.md) deben
@@ -360,20 +371,20 @@ Esta organización:
 Resumen; el detalle con contexto y consecuencias está en
 [Decisiones de diseño (ADR)](09-decisiones.md).
 
-| ADR | Decisión |
-|-----|----------|
-| ADR-01 | `NivelAcceso` como enum con valor numérico, en lugar de `int`. |
-| ADR-02 | `TipoPermiso` como enum (`ESTANDAR`, `ESPECIAL`), en lugar de un `tipo` sin definir. |
-| ADR-03 | `fechaHora` como `LocalDateTime`, en lugar de `String`. |
-| ADR-04 | `Sector.identificacion` en lugar de `idS`. |
-| ADR-05 | La colección `permisos` vive en `ControlAcceso`. |
-| ADR-06 | Separar `verificarAcceso()` (consulta) de `registrarIntento()` (registro). |
-| ADR-07 | Singleton lazy sin `synchronized`, por claridad didáctica. |
-| ADR-08 | Setters en todas las clases para cumplir `Reglas-Proyecto.md`. |
+| ADR | Decisión | Estado en el código |
+|-----|----------|---------------------|
+| ADR-01 | `NivelAcceso` como enum con valor numérico, en lugar de `int`. | ⚠️ Parcial: enum sin valor numérico ni comparación |
+| ADR-02 | `TipoPermiso` como enum (`ESTANDAR`, `ESPECIAL`), en lugar de un `tipo` sin definir. | ❌ No aplicado: `boolean especial` |
+| ADR-03 | `fechaHora` como `LocalDateTime`, en lugar de `String`. | ⚠️ Parcial: tipo correcto, sin asignación |
+| ADR-04 | `Sector.identificacion` en lugar de `idS`. | ❌ No aplicado: sigue `idS` |
+| ADR-05 | La colección `permisos` vive en `ControlAcceso`. | ✅ Aplicado |
+| ADR-06 | Separar `verificarAcceso()` (consulta) de `registrarIntento()` (registro). | ❌ No aplicado: no existe `registrarIntento()` |
+| ADR-07 | Singleton lazy sin `synchronized`, por claridad didáctica. | ✅ Aplicado |
+| ADR-08 | Setters en todas las clases para cumplir `Reglas-Proyecto.md`. | ⚠️ Parcial: solo `Empleado` |
 
 ## 4.14. Flujo previsto de uso
 
-1. `Main` obtiene el gestor: `ControlAcceso.getInstancia()`.
+1. `Main` obtiene el gestor: `ControlAcceso.getInstance()`.
 2. Se registran empleados y sectores.
 3. Se asignan niveles de acceso.
 4. Se conceden (o revocan) permisos especiales.
@@ -390,25 +401,27 @@ sequenceDiagram
     participant SE as Sector
     participant RE as RegistroAcceso
 
-    PA->>CA: getInstancia()
+    PA->>CA: getInstance()
     CA-->>PA: instancia única
-    PA->>CA: registrarIntento(empleado, sector)
+    PA->>CA: verificarAcceso(numEmpleado, numSector)
     activate CA
-    CA->>CA: verificarAcceso(empleado, sector)
-    CA->>EM: getNivelAcceso()
+    CA->>CA: pendiente: buscar empleado y sector
+    CA->>EM: getNivelAcesso()
     EM-->>CA: nivel
     CA->>SE: getNivelRequerido()
     SE-->>CA: nivelRequerido
-    alt nivel.alcanzaA(requerido)
+    alt nivel suficiente (orden del enum)
         CA->>CA: autorizado = true
-    else permiso ESPECIAL activo
+    else permiso especial activo
         CA->>CA: autorizado = true
     else
         CA->>CA: autorizado = false, motivo = "Nivel insuficiente"
     end
-    CA->>RE: new RegistroAcceso(empleado, sector, autorizado, motivo)
-    CA-->>PA: registro
+    CA->>RE: pendiente: crear RegistroAcceso
+    CA-->>PA: resultado
     deactivate CA
+    PA->>CA: consultarHistorial()
+    CA-->>PA: RegistroAcceso (pendiente)
 ```
 
 > Los pasos 2 a 7 dependen de código aún no implementado (ver

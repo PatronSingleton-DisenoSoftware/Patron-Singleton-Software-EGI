@@ -16,9 +16,10 @@
 | **Repositorio GitHub** | [Completar enlace público con acceso para el docente] |
 
 > **Estado de este documento:** borrador avanzado. Las Secciones I, II y IV están
-> completas; la Sección III describe el código actual, que **todavía no cumple** el
-> requisito de "programa completo, funcional y autoejecutable". El detalle bloqueante está
-> en la [lista de control](#lista-de-control-de-la-consigna).
+> completas; la Sección III describe **el código que existe hoy en `main`**, que ya tiene
+> la estructura de las siete clases y del Singleton, pero **todavía no implementa la
+> lógica de negocio** ni el flujo de demostración. El detalle bloqueante está en la
+> [lista de control](#lista-de-control-de-la-consigna).
 
 ---
 
@@ -109,7 +110,7 @@ Singleton.
 Singleton garantiza:
 
 1. **Una única instancia** de `ControlAcceso`, controlada por la propia clase.
-2. **Un punto de acceso global** (`getInstancia()`) para que cualquier puerta consulte el
+2. **Un punto de acceso global** (`getInstance()`) para que cualquier puerta consulte el
    mismo estado sin recibirlo por parámetro.
 3. **Coherencia inmediata**: una revocación se ve en todos los sectores en el mismo
    instante, porque no hay copias.
@@ -158,43 +159,56 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 |----------------|-----------------------|-------------|
 | Atributo con la instancia única | `ControlAcceso.instancia` | `- private static` |
 | Constructor privado | `ControlAcceso()` | `- private` |
-| Método estático de acceso | `ControlAcceso.getInstancia()` | `+ public static` |
+| Método estático de acceso | `ControlAcceso.getInstance()` | `+ public static` |
 | Cliente | `Main` (clase de prueba) | `+ public static void main` |
 
 | Elemento | Visibilidad | Motivo |
 |----------|-------------|--------|
 | `instancia` | `-` | Nadie fuera de la clase puede reemplazar la referencia. |
 | Constructor | `-` | Impide `new ControlAcceso()` desde el cliente. |
-| `getInstancia()` | `+` | Único camino permitido para obtener el objeto. |
+| `getInstance()` | `+` | Único camino permitido para obtener el objeto. |
 | Atributos del dominio (`empleados`, `sectores`, `permisos`, `registros`) | `-` | Encapsulamiento; se accede por métodos públicos. |
 | Métodos de gestión | `+` | API que consumen los puntos de acceso. |
-| Auxiliares (`buscarPermiso`, `tienePermisoEspecialActivo`) | `-` | Detalle interno, no forma parte del contrato. |
+| Métodos auxiliares de búsqueda y de permisos | `-` | **Pendientes**: todavía no existen en el código. |
 
 ## 2.3. Clases, atributos y responsabilidades
 
 | Clase | Atributos clave | Responsabilidad |
 |-------|-----------------|-----------------|
-| `ControlAcceso` | `instancia`, `empleados`, `sectores`, `permisos`, `registros` | Fuente única de verdad: altas, niveles, permisos, verificación y registro. |
-| `Empleado` | `identificacion`, `dni`, `nombre`, `apellido`, `nivelAcceso` | Datos del empleado y su nivel. |
-| `Sector` | `identificacion`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
-| `Permiso` | `empleado`, `sector`, `activo`, `tipo` | Relación empleado–sector, con baja lógica. |
+| `ControlAcceso` | `instancia`, `empleados`, `sectores`, `permisos`, `registros` | Fuente única de verdad: altas, niveles, permisos, verificación y consulta. |
+| `Empleado` | `identificacion`, `dni`, `nombre`, `apellido`, `nivelAcesso` | Datos del empleado y su nivel. |
+| `Sector` | `idS`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
+| `Permiso` | `empleado`, `sector`, `activo`, `especial` | Relación empleado–sector, con baja lógica. |
 | `RegistroAcceso` | `empleado`, `sector`, `fechaHora`, `autorizado`, `motivo` | Evidencia del intento, para auditoría. |
-| `NivelAcceso` | `GENERAL`(1) … `DIRECTIVO`(5) | Niveles acumulativos; encapsula la comparación. |
-| `TipoPermiso` | `ESTANDAR`, `ESPECIAL` | Distingue el permiso especial del ordinario. |
+| `NivelAcceso` | `NIVEL_1` … `NIVEL_5` | Niveles acumulativos, en el orden en que se declaran. |
+| `TipoPermiso` | — | **No existe en el código**: el tipo de permiso se representa con el `boolean especial`. |
 
-## 2.4. Reglas de negocio implementadas por el diseño
+> **Nombres tal como están en el código.** El diagrama y estas tablas usan los
+> identificadores reales de `src/` en `main`, incluidos `getInstance()`, `nivelAcesso`
+> (sin la segunda «c»), `idS` y `especial`. Varios de ellos se apartan de las decisiones
+> que se habían registrado como ADR; la brecha está documentada en el
+> [Anexo](#anexo-decisiones-de-diseño) y en [`informe/05-implementacion.md`](informe/05-implementacion.md#55-brecha-entre-diseño-e-implementación).
 
-| ID | Regla |
-|----|-------|
-| RN-01 | Un empleado con nivel *N* puede ingresar a todo sector cuyo `nivelRequerido <= N`. |
-| RN-02 | Un permiso `ESPECIAL` **activo** permite el ingreso aunque el nivel sea insuficiente. |
-| RN-03 | Un permiso revocado (`activo == false`) no habilita el ingreso y no se elimina. |
-| RN-04 | Todo intento se registra, sea autorizado o rechazado. |
-| RN-05 | Todo rechazo registra un `motivo`. |
-| RN-06 | La revocación es visible de inmediato en todos los sectores (consecuencia de la instancia única). |
-| RN-07 | Solo se concede un permiso a un empleado y un sector existentes. |
+## 2.4. Reglas de negocio del dominio
 
-## 2.5. Flujo de un intento de ingreso
+Las reglas describen el comportamiento que el sistema **debe** cumplir. La columna de
+estado indica si el código de `main` ya las implementa.
+
+| ID | Regla | Estado en el código |
+|----|-------|---------------------|
+| RN-01 | Un empleado con nivel *n* puede ingresar a todo sector cuyo `nivelRequerido` sea `NIVEL_1` … `NIVEL_n`, según el orden de declaración del enum. | ❌ `verificarAcceso()` devuelve `false` fijo |
+| RN-02 | Un permiso con `especial == true` y `activo == true` permite el ingreso aunque el nivel sea insuficiente. | ❌ Sin lógica de permisos |
+| RN-03 | Un permiso revocado (`activo == false`) no habilita el ingreso y no se elimina. | ❌ `revocar()` está vacío |
+| RN-04 | Todo intento se registra, sea autorizado o rechazado. | ❌ No hay método de registro |
+| RN-05 | Todo rechazo registra un `motivo`. | ❌ No hay método de registro |
+| RN-06 | La revocación es visible de inmediato en todos los sectores (consecuencia de la instancia única). | ✅ La instancia única existe; falta la operación |
+| RN-07 | Solo se concede un permiso a un empleado y un sector existentes. | ❌ Sin lógica de permisos |
+
+## 2.5. Flujo previsto de un intento de ingreso
+
+> El flujo completo **todavía no está implementado**: `Main` está vacío y
+> `verificarAcceso()` devuelve `false` fijo. El diagrama muestra las llamadas con las
+> firmas reales y marca como `pendiente` los pasos que faltan.
 
 ```mermaid
 sequenceDiagram
@@ -205,25 +219,27 @@ sequenceDiagram
     participant SE as Sector
     participant RE as RegistroAcceso
 
-    PA->>CA: getInstancia()
+    PA->>CA: getInstance()
     CA-->>PA: instancia única
-    PA->>CA: registrarIntento(empleado, sector)
+    PA->>CA: verificarAcceso(numEmpleado, numSector)
     activate CA
-    CA->>CA: verificarAcceso(empleado, sector)
-    CA->>EM: getNivelAcceso()
+    CA->>CA: pendiente: buscar empleado y sector
+    CA->>EM: getNivelAcesso()
     EM-->>CA: nivel
     CA->>SE: getNivelRequerido()
     SE-->>CA: nivelRequerido
-    alt nivel.alcanzaA(requerido)
+    alt nivel suficiente (orden del enum)
         CA->>CA: autorizado = true
-    else permiso ESPECIAL activo
+    else permiso especial activo
         CA->>CA: autorizado = true
     else
         CA->>CA: autorizado = false, motivo
     end
-    CA->>RE: new RegistroAcceso(...)
-    CA-->>PA: registro
+    CA->>RE: pendiente: crear RegistroAcceso
+    CA-->>PA: resultado
     deactivate CA
+    PA->>CA: consultarHistorial()
+    CA-->>PA: RegistroAcceso (pendiente de implementar)
 ```
 
 ---
@@ -254,15 +270,17 @@ En IntelliJ: abrir `src/Main.java` y usar **Run** (`Ctrl+Shift+F10`).
 
 ```
 src/
-├── ControlAcceso.java    ← Singleton
-├── Empleado.java
-├── Sector.java
-├── Permiso.java
-├── RegistroAcceso.java
-├── NivelAcceso.java      ← enum (pendiente)
-├── TipoPermiso.java      ← enum (pendiente)
-└── Main.java             ← clase de prueba
+├── ControlAcceso.java    ← Singleton: estructura y firmas, lógica pendiente
+├── Empleado.java         ← 5 atributos, constructor, getters, setters y toString()
+├── Sector.java           ← 3 atributos y getters (sin setters)
+├── Permiso.java          ← 4 atributos, getters, esEspecial() y revocar() vacío
+├── RegistroAcceso.java   ← 5 atributos y 3 getters (sin asignar fechaHora)
+├── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
+└── Main.java             ← clase de prueba, todavía vacía
 ```
+
+`TipoPermiso.java` **no existe**: el carácter especial del permiso se guarda en el
+`boolean especial` de `Permiso`.
 
 ## 3.3. El Singleton: `ControlAcceso`
 
@@ -270,21 +288,47 @@ Código actual de la pieza central (restringe la creación de la instancia, como
 consigna):
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
 public class ControlAcceso {
     // Atributos
+    private List<Empleado> empleados;
+    private List<Sector> sectores;
+    private List<Permiso> permisos;
+    private List<RegistroAcceso> registros;
     private static ControlAcceso instancia;
-    // Constructor de acceso unico
-    private ControlAcceso(){
-        // Logica del constructor
-    }
-    // Getters y Setters
 
-// Metodo de acceso unico
-    public static ControlAcceso getInstancia() {
-        if (instancia == null){
+    // Constructor de acceso unico
+    private ControlAcceso() {
+        this.empleados = new ArrayList<>();
+        this.sectores = new ArrayList<>();
+        this.permisos = new ArrayList<>();
+        this.registros = new ArrayList<>();
+    }
+
+    // Metodo de acceso unico
+    public static ControlAcceso getInstance() {
+        if (instancia == null) {
             instancia = new ControlAcceso();
         }
         return instancia;
+    }
+
+    // Metodos publicos (logica pendiente)
+    public void registrarEmpleado(Empleado empleado) { /* Logica */ }
+    public void registrarSector(Sector sector) { /* Logica */ }
+    public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso) { /* Logica */ }
+    public void concederPermiso(Permiso permiso) { /* Logica */ }
+    public void revocarPermiso(Permiso permiso) { /* Logica */ }
+
+    public boolean verificarAcceso(int numEmpleado, int numSector) {
+        boolean ejemplo = false;
+        return ejemplo;
+    }
+
+    public RegistroAcceso consultarHistorial() {
+        return null;
     }
 }
 ```
@@ -292,21 +336,33 @@ public class ControlAcceso {
 | Elemento | Por qué |
 |----------|---------|
 | `private static ControlAcceso instancia;` | `static`: un solo casillero para toda la clase. `private`: nadie de afuera lo reemplaza. |
-| `private ControlAcceso()` | `new ControlAcceso()` no compila fuera de la clase. |
-| `public static ... getInstancia()` | Único camino de acceso; crea la instancia la primera vez. |
+| `private ControlAcceso()` | `new ControlAcceso()` no compila fuera de la clase. Además inicializa las cuatro listas. |
+| `public static ... getInstance()` | Único camino de acceso; crea la instancia la primera vez. |
 | `if (instancia == null)` | Inicialización perezosa (*lazy*). |
+| Métodos con `/* Logica */` | Firmas definidas; el cuerpo es un marcador de posición, no una implementación. |
+| `verificarAcceso(int, int)` y `consultarHistorial()` | Devuelven valores fijos para que el proyecto compile; todavía no consultan las listas. |
 
 ## 3.4. Clase de prueba (`Main`)
 
 La consigna exige una clase de prueba propia que **demuestre el comportamiento del patrón**
-con un flujo simulado. Esta es la versión mínima, que compila con el código actual y
-prueba que las llamadas devuelven la misma instancia:
+con un flujo simulado. Hoy `Main` está vacío:
 
 ```java
 public class Main {
     public static void main(String[] args) {
-        ControlAcceso puertaPrincipal = ControlAcceso.getInstancia();
-        ControlAcceso salaServidores = ControlAcceso.getInstancia();
+
+    }
+}
+```
+
+La siguiente es la **versión mínima propuesta**, que compila con el código actual y prueba
+que dos llamadas devuelven la misma instancia. Todavía no está incorporada al repositorio:
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ControlAcceso puertaPrincipal = ControlAcceso.getInstance();
+        ControlAcceso salaServidores = ControlAcceso.getInstance();
 
         System.out.println("Puerta principal: " + puertaPrincipal);
         System.out.println("Sala de servidores: " + salaServidores);
@@ -326,32 +382,34 @@ Sala de servidores: ControlAcceso@1b6d3586
 ### Flujo completo que debe demostrar la versión final
 
 1. Obtener el gestor desde dos "puertas" distintas y comprobar que es el mismo objeto.
-2. Registrar un sector (`Sala de servidores`, nivel `TECNICO`) y dos empleados.
-3. Un empleado `INTERNO` intenta entrar → **rechazado** con motivo.
-4. Se le concede un permiso `ESPECIAL` → vuelve a intentar → **autorizado**.
+2. Registrar un sector (`Sala de servidores`, nivel `NIVEL_4`) y dos empleados.
+3. Un empleado `NIVEL_2` intenta entrar → **rechazado** con motivo.
+4. Se le concede un permiso con `especial = true` → vuelve a intentar → **autorizado**.
 5. Se revoca el permiso → intenta de nuevo → **rechazado**.
 6. Se consulta el historial: 3 registros con fecha/hora y resultado.
 
 Ese recorrido demuestra las dos caras del patrón: una sola instancia y un estado
-compartido que cambia para todos los puntos de acceso.
+compartido que cambia para todos los puntos de acceso. Para que funcione faltan, como
+mínimo: la lógica de `verificarAcceso(int, int)`, un método que registre el intento y que
+`consultarHistorial()` devuelva la colección de registros.
 
 ## 3.5. Estado del código frente a la consigna
 
 | Requisito de la Sección III | Estado |
 |-----------------------------|--------|
-| Código completo, sin partes por completar | ❌ Faltan `Sector`, `Permiso`, `RegistroAcceso`, ambos enums y los métodos de `ControlAcceso` |
+| Código completo, sin partes por completar | ❌ Las siete clases existen, pero la lógica de `ControlAcceso` y los métodos de `Permiso` están sin implementar |
 | Restricciones del patrón (constructor privado, atributo estático privado, acceso estático público) | ✅ Implementadas |
-| Clase de prueba con flujo simulado | ⚠️ Existe la versión mínima; falta el flujo completo |
+| Clase de prueba con flujo simulado | ❌ `Main` está vacío; la versión mínima está propuesta en §3.4 |
 | Versión del lenguaje indicada | ✅ Java 23 (compatible 17+) |
 | Cómo se ejecuta | ✅ Comandos en §3.1 |
-| Enlace al GitHub personal | ❌ [Completar] |
+| Enlace al GitHub personal | ✅ Repositorio público en §3.6 |
 
 ## 3.6. Enlace al repositorio
 
-**Repositorio:** [Completar URL de GitHub, público o con acceso para el docente]
+**Repositorio:** <https://github.com/PatronSingleton-DisenoSoftware/Patron-Singleton-Software-EGI>
 
-El repositorio contiene `src/` con el programa completo, `docs/` con este documento y
-`README.md` con las instrucciones de ejecución.
+El repositorio contiene `src/` con el código, `docs/` con este documento y las
+instrucciones de ejecución en `docs/manual/`.
 
 ---
 
@@ -365,23 +423,26 @@ decisiones.
 
 ### S — Responsabilidad Única (tensión principal)
 
-`ControlAcceso` hoy acumula, como mínimo, estas responsabilidades:
+`ControlAcceso` acumula, como mínimo, estas responsabilidades:
 
-1. garantizar la instancia única (`instancia`, `getInstancia()`);
-2. administrar empleados (`registrarEmpleado`, `buscarEmpleado`);
-3. administrar sectores (`registrarSector`, `buscarSector`);
+1. garantizar la instancia única (`instancia`, `getInstance()`);
+2. administrar empleados (`registrarEmpleado`);
+3. administrar sectores (`registrarSector`);
 4. administrar permisos (`concederPermiso`, `revocarPermiso`);
-5. decidir autorizaciones (`verificarAcceso`);
-6. registrar y exponer el historial (`registrarIntento`, `obtenerHistorial`).
+5. asignar niveles (`asignarNivel`);
+6. decidir autorizaciones y exponer el historial (`verificarAcceso(int, int)`,
+   `consultarHistorial()`).
 
 Son **seis motivos para cambiar** la misma clase: si cambia la política de permisos, si se
 agrega persistencia, si se modifica el formato del historial. El patrón, por su propia
 naturaleza de "punto único", empuja en dirección contraria a SRP. La consigna lo señala
-explícitamente como el punto de partida para SOLID, y el código lo confirma.
+explícitamente como el punto de partida para SOLID, y las firmas del código lo confirman
+aunque sus cuerpos todavía estén sin implementar.
 
-**Mitigación aplicada en el diseño:** se separó la consulta del efecto secundario
-(`verificarAcceso()` no registra; `registrarIntento()` sí). Es una separación de
-responsabilidades dentro de la misma clase, no una solución completa.
+**Mitigación aplicada:** ninguna todavía. El diseño había previsto separar la consulta del
+efecto secundario (`verificarAcceso()` sin registrar y un `registrarIntento()` aparte),
+pero el código actual solo declara `verificarAcceso()` y `consultarHistorial()`; no existe
+el método que registra. Es una de las brechas del [Anexo](#anexo-decisiones-de-diseño).
 
 **Mitigación posible a futuro:** extraer `RepositorioEmpleados`, `RepositorioSectores`,
 `ServicioPermisos` y `ServicioRegistros`, y dejar a `ControlAcceso` como fachada. Se evita
@@ -389,7 +450,7 @@ hoy porque el alcance de la EGI no lo exige y agregaría clases sin necesidad de
 
 ### O — Abierto/Cerrado (tensión)
 
-- **Beneficio parcial:** agregar un sector nuevo (Depósito, nivel `INTERNO`) o un empleado
+- **Beneficio parcial:** agregar un sector nuevo (Depósito, nivel `NIVEL_2`) o un empleado
   nuevo **no requiere tocar código**: es un dato. Los niveles viven en el enum
   `NivelAcceso` y los sectores en la colección `sectores`.
 - **Tensión:** agregar una **regla** nueva (por ejemplo, "no se permite ingresar entre las
@@ -403,24 +464,24 @@ solución "abierta/cerrada"; se documenta como mejora, no se implementa en esta 
 ### L — Sustitución de Liskov (sin conflicto)
 
 El diseño no usa jerarquías de herencia: `Empleado`, `Sector`, `Permiso` y
-`RegistroAcceso` son clases independientes; `NivelAcceso` y `TipoPermiso` son enums. No
-hay subtipos que puedan romper el contrato de un supertipo, por lo que LSP no se ve
-comprometido. Es una consecuencia de haber preferido **composición** (un `Permiso`
-referencia a un `Empleado` y a un `Sector`) sobre herencia.
+`RegistroAcceso` son clases independientes; `NivelAcceso` es un enum y `TipoPermiso` no
+existe en el código. No hay subtipos que puedan romper el contrato de un supertipo, por lo
+que LSP no se ve comprometido. Es una consecuencia de haber preferido **composición** (un
+`Permiso` referencia a un `Empleado` y a un `Sector`) sobre herencia.
 
 ### I — Segregación de Interfaces
 
 Hoy no hay interfaces, así que el principio no se viola ni se aprovecha. Si se introdujera
-una interfaz `GestorAcceso` con los once métodos públicos, cualquier cliente que solo
+una interfaz `GestorAcceso` con los ocho métodos públicos, cualquier cliente que solo
 necesite consultar el historial se vería obligado a depender de métodos que no usa
 (acoplamiento innecesario). La versión correcta sería segregarla:
 
-- `ConsultorAcceso` → `verificarAcceso`, `obtenerHistorial`
+- `ConsultorAcceso` → `verificarAcceso`, `consultarHistorial`
 - `AdministradorAcceso` → altas, niveles, permisos
 
 ### D — Inversión de Dependencias (tensión para testing)
 
-`Main` y los puntos de acceso llaman a `ControlAcceso.getInstancia()`: dependen de una
+`Main` y los puntos de acceso llaman a `ControlAcceso.getInstance()`: dependen de una
 **clase concreta** y de un método estático. No hay forma de sustituir el gestor por un
 doble de prueba sin tocar el código. Esto es la raíz de la "dificultad de testing" que la
 consigna pide analizar.
@@ -434,29 +495,30 @@ como **una** implementación posible, no como la única forma de obtener el cola
 | Ventaja | Dónde se ve en el código |
 |---------|--------------------------|
 | **Fuente única de verdad** | `instancia` + las cuatro colecciones en `ControlAcceso`. |
-| **Desacoplamiento entre puntos de acceso** | Las puertas no se conocen entre sí; solo llaman a `getInstancia()`. |
-| **Coherencia inmediata** | `revocarPermiso()` modifica el único estado; el próximo `verificarAcceso()` de cualquier puerta lo refleja. |
+| **Desacoplamiento entre puntos de acceso** | Las puertas no se conocen entre sí; solo llaman a `getInstance()`. |
+| **Coherencia inmediata** | Cuando `revocarPermiso()` esté implementado, modificará el único estado y el próximo `verificarAcceso()` de cualquier puerta lo reflejará. |
 | **Eficiencia de recursos** | Una sola copia de empleados, sectores, permisos y registros en memoria. |
-| **Auditoría centralizada** | `registrarIntento()` y `obtenerHistorial()` producen un historial único, no fragmentado. |
+| **Auditoría centralizada** | `consultarHistorial()` apunta a una única colección de registros, no a historiales fragmentados. |
 | **Extensibilidad de datos** | Agregar sectores o empleados no requiere recompilar lógica nueva. |
 
 ## 4.3. Desventajas y riesgos
 
 | Riesgo | Explicación | Mitigación |
 |--------|-------------|------------|
-| **Estado global** | Cualquier clase puede obtener el gestor y modificar el sistema; las dependencias quedan ocultas en el código. | Inyectar el gestor en lugar de llamar a `getInstancia()` dentro de la lógica. |
+| **Estado global** | Cualquier clase puede obtener el gestor y modificar el sistema; las dependencias quedan ocultas en el código. | Inyectar el gestor en lugar de llamar a `getInstance()` dentro de la lógica. |
 | **Problemas en entornos multihilo** | Dos hilos que evalúen `instancia == null` a la vez pueden crear dos instancias. Además, las colecciones (`ArrayList`) no son seguras para escritura concurrente. | `synchronized`, inicialización anticipada, holder idiom o `enum`; colecciones concurrentes. |
 | **Dificultades de testing** | El estado persiste entre pruebas y no se puede sustituir por un mock. | Interfaz + inyección; método de reinicio visible solo en el paquete de pruebas. |
-| **Tensión con SRP** | La clase central acumula creación, altas, permisos, verificación y registro. | Extraer servicios y dejar una fachada. |
+| **Tensión con SRP** | La clase central acumula creación, altas, niveles, permisos, verificación y consulta del historial. | Extraer servicios y dejar una fachada. |
 | **Fugas de memoria** | La referencia `static` mantiene viva la instancia durante toda la vida del `ClassLoader`; en servidores de aplicación, un redeploy puede dejar el objeto anterior retenido. En escritorio el impacto es bajo. | Evitar estado estático en aplicaciones con recarga de clases; cerrar y liberar recursos. |
-| **Crecimiento sin límite del historial** | `registros` crece con cada intento y nunca se purga. | Política de retención o persistencia con rotación. |
+| **Crecimiento sin límite del historial** | Cuando se implemente el registro, `registros` crecerá con cada intento y no tiene purga. | Política de retención o persistencia con rotación. |
 | **Serialización y reflexión** | Pueden crear una segunda instancia si no se protege (`readResolve`) o si el constructor privado se fuerza por reflexión. | Usar `enum` como implementación más robusta. |
 
 ## 4.4. Autoevaluación
 
-El patrón resolvió el problema que el escenario planteaba: con una sola instancia, la
-revocación de un permiso ya no puede quedar "en una puerta". Esa es la ganancia concreta y
-verificable.
+La estructura del patrón resuelve el problema que el escenario planteaba: con una sola
+instancia, la revocación de un permiso no puede quedar "en una puerta". Esa es la ganancia
+concreta; hoy está demostrada por el código del Singleton y **queda pendiente de ejecutar**
+cuando se implementen `revocarPermiso()` y `verificarAcceso()`.
 
 El costo también es concreto: `ControlAcceso` es la clase con más motivos para cambiar del
 sistema, el testing es más difícil de lo que sería con dependencias inyectadas y la
@@ -464,26 +526,26 @@ implementación actual no es segura frente a hilos. Ninguno de esos costos inval
 elección del patrón, pero **un informe que los omitiera sería incompleto**: la consigna
 evalúa justamente el criterio para reconocerlos.
 
-La deuda técnica queda registrada en el [Anexo](#anexo-decisiones-de-diseño) (ADR-07 y
-ADR-08) y en la lista de mejoras.
+La deuda técnica queda registrada en el [Anexo](#anexo-decisiones-de-diseño) (ADR-06, ADR-07
+y ADR-08) y en la lista de mejoras.
 
 ---
 
 # Anexo. Decisiones de diseño
 
-Decisiones tomadas antes de programar, para evitar retrabajo. El detalle extendido está en
-`docs/informe/09-decisiones.md`.
+Decisiones tomadas antes de programar, con el estado real de aplicación en el código de
+`main`. El detalle extendido está en `docs/informe/09-decisiones.md`.
 
-| ADR | Decisión | Motivo |
-|-----|----------|--------|
-| ADR-01 | `NivelAcceso` como enum con valor numérico | Evita niveles inválidos y centraliza la comparación acumulativa. |
-| ADR-02 | `TipoPermiso` como enum | El atributo `tipo` no tenía tipo definido. |
-| ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial sin parsear texto. |
-| ADR-04 | `Sector.identificacion` en lugar de `idS` | Consistencia de nombres con `Empleado`. |
-| ADR-05 | La colección `permisos` vive en `ControlAcceso` | Sin ella, conceder y revocar no tendrían un único lugar donde persistir. |
-| ADR-06 | `verificarAcceso()` no registra; `registrarIntento()` sí | Separa consulta de efecto secundario. |
-| ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; el riesgo multihilo se documenta en §4.3. |
-| ADR-08 | Setters en todas las clases | Cumple la regla de la cátedra, aun cuando `RegistroAcceso` podría ser inmutable. |
+| ADR | Decisión | Motivo | Estado en el código |
+|-----|----------|--------|---------------------|
+| ADR-01 | `NivelAcceso` como enum con valor numérico | Evita niveles inválidos y centraliza la comparación acumulativa. | ⚠️ Parcial: existe el enum con `NIVEL_1`…`NIVEL_5`, pero sin valor numérico ni `alcanzaA()`. |
+| ADR-02 | `TipoPermiso` como enum | El atributo `tipo` no tenía tipo definido. | ❌ No aplicado: se usa `boolean especial`; `TipoPermiso.java` no existe. |
+| ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial sin parsear texto. | ⚠️ Parcial: el tipo es correcto, pero el constructor está vacío y no asigna la fecha. |
+| ADR-04 | `Sector.identificacion` en lugar de `idS` | Consistencia de nombres con `Empleado`. | ❌ No aplicado: el atributo sigue siendo `idS`. |
+| ADR-05 | La colección `permisos` vive en `ControlAcceso` | Sin ella, conceder y revocar no tendrían un único lugar donde persistir. | ✅ Aplicado: `private List<Permiso> permisos`. |
+| ADR-06 | `verificarAcceso()` no registra; `registrarIntento()` sí | Separa consulta de efecto secundario. | ❌ No aplicado: no existe `registrarIntento()`; `verificarAcceso()` devuelve `false` fijo. |
+| ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; el riesgo multihilo se documenta en §4.3. | ✅ Aplicado: `getInstance()` crea la instancia en la primera llamada. |
+| ADR-08 | Setters en todas las clases | Cumple la regla de la cátedra, aun cuando `RegistroAcceso` podría ser inmutable. | ⚠️ Parcial: solo `Empleado` tiene setters. |
 
 ---
 
@@ -495,17 +557,19 @@ Decisiones tomadas antes de programar, para evitar retrabajo. El detalle extendi
 | 2 | El escenario es un problema de negocio real, distinto de los vistos en clase | ✅ ENVIDIA / control de acceso |
 | 3 | La Sección I justifica el patrón frente a una solución sin patrones | ✅ §1.2 y §1.3 |
 | 4 | El diagrama UML respeta los roles del patrón y muestra visibilidad | ✅ §2.1 (imagen embebida) y §2.2 |
-| 5 | El código está completo, se ejecuta tal como se entrega y respeta el patrón | ❌ Bloqueante: ver §3.5 |
-| 6 | El programa tiene su propia clase de prueba con flujo simulado | ⚠️ Versión mínima; falta el flujo completo |
-| 7 | El código está en GitHub con acceso para el docente y el enlace figura en la Sección III | ❌ [Completar] |
+| 5 | El código está completo, se ejecuta tal como se entrega y respeta el patrón | ❌ Bloqueante: falta la lógica de negocio (ver §3.5) |
+| 6 | El programa tiene su propia clase de prueba con flujo simulado | ❌ `Main` vacío; hay una versión mínima propuesta en §3.4 |
+| 7 | El código está en GitHub con acceso para el docente y el enlace figura en la Sección III | ✅ Repositorio público en §3.6 |
 | 8 | La Sección IV analiza SOLID y ventajas/desventajas con referencias al código | ✅ §4.1 a §4.4 |
 | 9 | Todo está en un único documento con las cuatro secciones en orden | ✅ este documento |
 
 ## Qué falta para poder entregar
 
-1. Implementar el dominio completo (`Sector`, `Permiso`, `RegistroAcceso`, `NivelAcceso`,
-   `TipoPermiso` y los métodos de `ControlAcceso`).
-2. Completar `Main` con el flujo de 6 pasos de §3.4 y verificar las pruebas CP-01 a CP-13.
-3. Publicar el repositorio y pegar la URL en §3.6.
-4. Completar los datos de los integrantes en la portada.
-5. Exportar este documento a PDF y subirlo al campus virtual.
+1. Implementar la lógica de `ControlAcceso`: altas, búsquedas, concesión y revocación de
+   permisos, `verificarAcceso(int, int)` y un método que registre el intento.
+2. Completar `Permiso.revocar()` y la asignación de `fechaHora` en `RegistroAcceso`.
+3. Completar `Main` con el flujo de 6 pasos de §3.4 y verificar las pruebas CP-01 a CP-13.
+4. Resolver las brechas de nombres y tipos del Anexo (ADR-01, ADR-02, ADR-04, ADR-06 y
+   ADR-08) o dejar registrada la decisión de mantenerlas.
+5. Completar los datos de los integrantes en la portada.
+6. Exportar este documento a PDF y subirlo al campus virtual.

@@ -38,12 +38,15 @@ Software, ITU UNCuyo Sede Este).
 
 ### Bloqueantes antes de entregar
 
-1. Completar el código (`Sector`, `Permiso`, `RegistroAcceso`, `NivelAcceso`,
-   `TipoPermiso` y los métodos de `ControlAcceso`).
+1. Completar la lógica de `ControlAcceso` (altas, búsquedas, permisos, `verificarAcceso`,
+   registro del intento y consulta del historial), `Permiso.revocar()`, la asignación de
+   `RegistroAcceso.fechaHora` y la comparación de `NivelAcceso`.
 2. Completar `Main` con el flujo simulado (misma instancia + permiso concedido y revocado).
-3. Publicar el repositorio y pegar la URL en la Sección III.
+3. Resolver o aceptar formalmente las brechas de los ADR-01, 02, 04, 06 y 08
+   (`getInstance`, `nivelAcesso`, `idS`, `boolean especial`, setters faltantes).
 4. Completar los datos de los integrantes y exportar el documento a PDF.
 
+El repositorio ya es público: la URL figura en la Sección III del documento de entrega.
 La lista completa está en `docs/EGI-Patron-Singleton.md` (sección "Lista de control de la
 consigna").
 
@@ -97,28 +100,31 @@ JDK: 17 o superior (en este equipo, 23.0.1; `.idea/misc.xml` declara nivel 21).
 
 ## Estado real del código
 
-No asumir que lo documentado está implementado. Estado actual:
+No asumir que lo documentado está implementado. Estado actual (alineado con `main` el
+2026-11-17):
 
-- ✅ `ControlAcceso`: esqueleto correcto del Singleton (lazy, sin `synchronized`).
-- ✅ `Empleado`: 4 atributos privados, constructor y getters. **Sin `nivelAcceso`, sin setters.**
-- ⚠️ `Sector`, `Permiso`, `RegistroAcceso`: clases vacías.
-- ❌ `NivelAcceso` (enum): no existe todavía.
+- ✅ `ControlAcceso`: Singleton correcto (atributo `private static`, constructor privado,
+  `getInstance()` lazy sin `synchronized`) y las cuatro listas inicializadas. Los métodos
+  de gestión tienen firma pero cuerpo `// Logica`; `verificarAcceso(int, int)` devuelve
+  `false` y `consultarHistorial()` devuelve `null`.
+- ✅ `Empleado`: 5 atributos privados, constructor, getters, `setNivelAcesso()` y
+  `toString()`. El atributo se llama `nivelAcesso` (typo).
+- ⚠️ `Sector`: `idS`, `nombre`, `nivelRequerido` y getters; sin setters ni constructor con
+  parámetros.
+- ⚠️ `Permiso`: `empleado`, `sector`, `activo`, `especial`, getters; `revocar()` vacío.
+- ⚠️ `RegistroAcceso`: atributos y 3 getters; constructor vacío, `fechaHora` sin asignar.
+- ✅ `NivelAcceso`: enum `NIVEL_1` … `NIVEL_5`; sin valor numérico ni comparación.
+- ❌ `TipoPermiso`: no existe (se usa `boolean especial`).
 - ⚠️ `Main`: `main` vacío, sin demostración del patrón.
 - ✅ El proyecto compila sin errores.
 
-El **diseño** (Sección 1 y 2) ya está documentado y es más amplio que el código:
-`docs/informe/04-diseno.md` define las siete clases/enums, sus atributos y
-responsabilidades.
+El **diseño documentado** ya está alineado al código: `docs/informe/04-diseno.md` describe
+la estructura real y `05-implementacion.md` registra la brecha exacta.
 
-Decisiones de diseño **ya tomadas** (no reabrir sin actualizar
-`docs/informe/09-decisiones.md`):
-
-1. `NivelAcceso` y `TipoPermiso` son enums; `nivelAcceso`/`nivelRequerido` no son `int`.
-2. `RegistroAcceso.fechaHora` es `LocalDateTime`, asignado por el propio registro.
-3. `Sector.identificacion` (no `idS`).
-4. La colección `permisos` vive en `ControlAcceso`.
-5. `verificarAcceso()` no registra; `registrarIntento()` sí.
-6. Setters en todas las clases, incluida `RegistroAcceso` (regla de la cátedra).
+Decisiones registradas en `docs/informe/09-decisiones.md`: el código solo aplicó
+**ADR-05** (colección `permisos`) y **ADR-07** (Singleton lazy). Quedaron parciales
+ADR-01, 03 y 08, y sin aplicar ADR-02, 04 y 06. No cambiar nombres ni tipos sin actualizar
+esa tabla y el UML.
 
 Mantener actualizado `docs/informe/07-conclusiones.md` y el
 [índice de documentación](docs/README.md) cuando cambie el estado.
@@ -127,8 +133,9 @@ Mantener actualizado `docs/informe/07-conclusiones.md` y el
 
 - Idioma: **español** (código, comentarios, docs y mensajes de commit).
 - Formato: Markdown UTF-8.
-- Diagramas: Mermaid embebido en los `.md`; no introducir PlantUML ni imágenes binarias
-  si un diagrama de texto alcanza.
+- Diagramas: Mermaid embebido en los `.md` para los flujos. El UML de entrega se mantiene
+  en `docs/assets/uml-clases.puml`, se renderiza a `uml-clases.png` y se embebe como imagen
+  (ver `docs/README.md`).
 - Imágenes: `docs/assets/`, referenciadas con rutas relativas.
 - No duplicar contenido: el informe referencia el código, no lo copia entero.
 

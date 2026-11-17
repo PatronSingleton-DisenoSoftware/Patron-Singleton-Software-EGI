@@ -11,13 +11,13 @@ garantizando que todos los puntos de acceso trabajen sobre una única fuente de 
 1. Demostrar, en el planteamiento del problema, por qué múltiples instancias del gestor
    producen desincronización de permisos y una falla de seguridad.
 2. Modelar las entidades del dominio: `Empleado`, `Sector`, `Permiso` y `RegistroAcceso`.
-3. Representar los niveles de seguridad con la enumeración `NivelAcceso` (1 a 5,
-   acumulativos).
+3. Representar los niveles de seguridad con la enumeración `NivelAcceso`
+   (`NIVEL_1` a `NIVEL_5`, acumulativos).
 4. Implementar `ControlAcceso` como Singleton:
    - atributo estático y privado con la instancia,
    - constructor privado,
-   - método público y estático de acceso (`getInstancia()`),
-   - colecciones de empleados, sectores y registros.
+   - método público y estático de acceso (`getInstance()`),
+   - colecciones de empleados, sectores, permisos y registros.
 5. Implementar la verificación de acceso combinando **nivel acumulativo** y
    **permiso especial activo**.
 6. Registrar todo intento de ingreso, autorizado o rechazado, con fecha/hora y motivo.
@@ -29,13 +29,13 @@ garantizando que todos los puntos de acceso trabajen sobre una única fuente de 
 |-----|-----------|------------------|--------|
 | R1  | Existe una sola instancia de `ControlAcceso` | `a == b` es `true` en `Main` | Pendiente (Main vacío) |
 | R2  | El constructor no es accesible desde fuera | `new ControlAcceso()` no compila | ✅ Por inspección |
-| R3  | Los atributos son privados | Inspección del código | ✅ Parcial (faltan clases) |
+| R3  | Los atributos son privados | Inspección del código | ✅ |
 | R4  | Cada clase en su propio archivo | Estructura de `src/` | ✅ |
 | R5  | El proyecto compila con `javac` | Compilación de todo `src/` | ✅ |
 | R6  | Un nivel N habilita los niveles 1..N | Caso de prueba con nivel 3 | Pendiente (sin lógica) |
-| R7  | Un permiso especial activo habilita el ingreso aunque falte nivel | Caso de prueba | Pendiente (clases vacías) |
-| R8  | Un permiso revocado deniega el ingreso | Caso de prueba | Pendiente (clases vacías) |
-| R9  | Todo intento queda registrado con fecha/hora y motivo | Consultar historial | Pendiente (clases vacías) |
+| R7  | Un permiso especial activo habilita el ingreso aunque falte nivel | Caso de prueba | Pendiente (sin lógica) |
+| R8  | Un permiso revocado deniega el ingreso | Caso de prueba | Pendiente (sin lógica) |
+| R9  | Todo intento queda registrado con fecha/hora y motivo | Consultar historial | Pendiente (sin lógica) |
 
 El detalle de cada caso está en [Pruebas](06-pruebas.md).
 

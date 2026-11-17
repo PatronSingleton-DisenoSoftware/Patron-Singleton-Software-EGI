@@ -36,9 +36,9 @@ Hay situaciones donde tener más de un objeto de cierta clase produce inconsiste
 
 | Variante | Descripción | Ventaja | Riesgo |
 |----------|-------------|---------|--------|
-| **Lazy** (perezosa) | La instancia se crea en el primer `getInstancia()`. | No se crea si nunca se usa. | No es segura frente a hilos sin sincronización. |
+| **Lazy** (perezosa) | La instancia se crea en el primer `getInstance()`. | No se crea si nunca se usa. | No es segura frente a hilos sin sincronización. |
 | **Eager** (anticipada) | `private static final X instancia = new X();` | Simple y segura frente a hilos. | Se crea siempre, aunque no se use. |
-| **Sincronizada** | `getInstancia()` marcado `synchronized`. | Segura frente a hilos. | Costo de sincronización en cada llamada. |
+| **Sincronizada** | `getInstance()` marcado `synchronized`. | Segura frente a hilos. | Costo de sincronización en cada llamada. |
 | **Double-checked locking** | Verificación doble con `volatile`. | Segura y eficiente. | Más compleja de leer. |
 | **Enum** | `enum X { INSTANCIA; }` | La más robusta: resiste reflexión y serialización. | Menos flexible si se necesita herencia. |
 

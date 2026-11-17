@@ -51,15 +51,17 @@ Las convenciones de código obligatorias viven en
 
 ## Estado frente a la consigna
 
-El diseño está cerrado y las Secciones I, II y IV del documento de entrega están
-completas. Quedan **tres bloqueantes** para poder entregar:
+La estructura de las siete clases y del Singleton está creada y el proyecto compila. La
+lógica de negocio y la demostración siguen pendientes. Quedan **tres bloqueantes**:
 
-1. el código no está completo (faltan clases, enums y métodos de `ControlAcceso`);
-2. la clase de prueba no ejecuta todavía el flujo completo;
-3. falta publicar el repositorio y pegar el enlace en la Sección III.
+1. `ControlAcceso` tiene las firmas, pero no la lógica; `Permiso.revocar()` está vacío y
+   `RegistroAcceso` no asigna la fecha;
+2. `Main` está vacío: no hay demostración en ejecución del patrón;
+3. faltan los datos de los integrantes y la exportación a PDF.
 
-El detalle está en la
-[lista de control](EGI-Patron-Singleton.md#lista-de-control-de-la-consigna).
+El repositorio ya es público y su enlace figura en la Sección III. El detalle está en la
+[lista de control](EGI-Patron-Singleton.md#lista-de-control-de-la-consigna) y en
+[Implementación §5.5](informe/05-implementacion.md#55-brecha-entre-diseño-e-implementación).
 
 ## Convenciones
 

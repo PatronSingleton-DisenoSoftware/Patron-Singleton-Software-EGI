@@ -12,19 +12,19 @@ funcionales sobre `ControlAcceso`.
 
 | ID | Caso | Acción | Resultado esperado | Estado |
 |----|------|--------|--------------------|--------|
-| CP-01 | Unicidad de la instancia | Comparar dos llamadas a `getInstancia()` con `==` | `true` | Pendiente (Main vacío) |
+| CP-01 | Unicidad de la instancia | Comparar dos llamadas a `getInstance()` con `==` | `true` | Pendiente (`Main` vacío) |
 | CP-02 | Constructor inaccesible | Intentar `new ControlAcceso()` | Error de compilación | ✅ Por inspección |
-| CP-03 | Instancia no nula | `getInstancia() != null` | `true` | Pendiente |
+| CP-03 | Instancia no nula | `getInstance() != null` | `true` | Pendiente |
 | CP-04 | Mismo objeto en llamadas repetidas | 100 llamadas en un bucle, comparar todas | Todas iguales a la primera | Pendiente |
 
 ### Reglas de negocio
 
 | ID | Regla | Acción | Resultado esperado | Estado |
 |----|-------|--------|--------------------|--------|
-| CP-05 | RN-01 | Empleado `INTERNO` (2) → sector `INTERNO` (2) | Autorizado | Pendiente |
-| CP-06 | RN-01 | Empleado `INTERNO` (2) → sector `TECNICO` (4) | Rechazado, motivo "Nivel insuficiente" | Pendiente |
-| CP-07 | RN-01 | Empleado `RESTRINGIDO` (3) → sector `GENERAL` (1) | Autorizado (niveles acumulativos) | Pendiente |
-| CP-08 | RN-02 | Empleado `INTERNO` (2) con permiso `ESPECIAL` activo → sector `TECNICO` (4) | Autorizado | Pendiente |
+| CP-05 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_2` | Autorizado | Pendiente |
+| CP-06 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_4` | Rechazado, motivo "Nivel insuficiente" | Pendiente |
+| CP-07 | RN-01 | Empleado `NIVEL_3` → sector `NIVEL_1` | Autorizado (niveles acumulativos) | Pendiente |
+| CP-08 | RN-02 | Empleado `NIVEL_2` con permiso `especial = true` y `activo = true` → sector `NIVEL_4` | Autorizado | Pendiente |
 | CP-09 | RN-03 | Mismo caso con el permiso revocado | Rechazado | Pendiente |
 | CP-10 | RN-04 | Acceso permitido | `RegistroAcceso` con `autorizado = true` y `fechaHora` no nula | Pendiente |
 | CP-11 | RN-05 | Acceso denegado | `autorizado = false` y `motivo` no vacío | Pendiente |
@@ -44,8 +44,8 @@ funcionales sobre `ControlAcceso`.
 ```java
 public class Main {
     public static void main(String[] args) {
-        ControlAcceso primera = ControlAcceso.getInstancia();
-        ControlAcceso segunda = ControlAcceso.getInstancia();
+        ControlAcceso primera = ControlAcceso.getInstance();
+        ControlAcceso segunda = ControlAcceso.getInstance();
 
         System.out.println("primera  = " + primera);
         System.out.println("segunda  = " + segunda);
@@ -86,21 +86,22 @@ CP-13 a pruebas automáticas:
 
 ```java
 @Test
-void getInstanciaDevuelveSiempreLaMismaReferencia() {
-    assertSame(ControlAcceso.getInstancia(), ControlAcceso.getInstancia());
+void getInstanceDevuelveSiempreLaMismaReferencia() {
+    assertSame(ControlAcceso.getInstance(), ControlAcceso.getInstance());
 }
 
 @Test
 void permisoRevocadoDeniegaElAcceso() {
     // ... alta de empleado, sector y permiso, luego revocar
-    assertFalse(control.verificarAcceso(empleado, sector));
+    assertFalse(control.verificarAcceso(1, 10));
 }
 
 @Test
 void nivelSuperiorAlcanzaSectoresDeNivelMenor() {
-    empleado.setNivelAcceso(NivelAcceso.RESTRINGIDO);
-    sector.setNivelRequerido(NivelAcceso.GENERAL);
-    assertTrue(control.verificarAcceso(empleado, sector));
+    empleado.setNivelAcesso(NivelAcceso.NIVEL_3);
+    // Requiere el setter de Sector.nivelRequerido, todavía pendiente.
+    sector.setNivelRequerido(NivelAcceso.NIVEL_1);
+    assertTrue(control.verificarAcceso(1, 10));
 }
 ```
 

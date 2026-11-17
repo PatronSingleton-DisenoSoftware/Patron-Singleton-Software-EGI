@@ -4,7 +4,24 @@ Registro de las decisiones que modifican o completan el planteo original. Cada u
 el formato **Contexto → Decisión → Consecuencias → Alternativas descartadas**.
 
 Las decisiones se tomaron **antes de implementar**: cambiar el tipo de un atributo
-después obliga a tocar constructores, getters, setters y pruebas.
+después obliga a tocar constructores, getters, setters y pruebas. Esta sección conserva
+la decisión propuesta; la tabla siguiente indica si el código de `main` la aplicó.
+
+## Estado de aplicación en el código
+
+| ADR | Decisión | Estado | Qué hay en `src/` |
+|-----|----------|--------|-------------------|
+| ADR-01 | `NivelAcceso` como enum | ⚠️ Parcial | Enum `NIVEL_1`…`NIVEL_5`, sin valor numérico ni `alcanzaA()` |
+| ADR-02 | `TipoPermiso` como enum | ❌ No aplicado | `Permiso.especial` es `boolean`; no existe `TipoPermiso.java` |
+| ADR-03 | `fechaHora` como `LocalDateTime` | ⚠️ Parcial | El tipo es correcto; el constructor no asigna la fecha |
+| ADR-04 | `Sector.identificacion` | ❌ No aplicado | El atributo sigue siendo `idS` |
+| ADR-05 | `permisos` en `ControlAcceso` | ✅ Aplicado | `private List<Permiso> permisos` |
+| ADR-06 | Separar verificar de registrar | ❌ No aplicado | Solo `verificarAcceso(int, int)`; no existe `registrarIntento()` |
+| ADR-07 | Singleton lazy sin `synchronized` | ✅ Aplicado | `getInstance()` crea la instancia en la primera llamada |
+| ADR-08 | Setters en todas las clases | ⚠️ Parcial | Solo `Empleado` tiene setters |
+
+> Las brechas no se corrigen en esta rama de documentación: se registran para que el grupo
+> decida si ajusta el código o si formaliza el cambio de decisión.
 
 ---
 
@@ -15,7 +32,12 @@ una enumeración `NivelAcceso` con los niveles 1 a 5. Son dos representaciones d
 concepto: un `int` permite `asignarNivel(99)` sin que nada lo impida.
 
 **Decisión.** `Empleado.nivelAcceso` y `Sector.nivelRequerido` usan el tipo `NivelAcceso`.
-El enum guarda su valor numérico y expone `getNivel()` y `alcanzaA(NivelAcceso)`.
+El enum debía guardar su valor numérico y exponer `getNivel()` y
+`alcanzaA(NivelAcceso)`.
+
+**Estado actual.** ⚠️ Parcial: el enum existe con las constantes `NIVEL_1` … `NIVEL_5`,
+pero no tiene valor numérico ni métodos. El atributo de `Empleado` se llama
+`nivelAcesso`.
 
 **Consecuencias.**
 
@@ -39,6 +61,10 @@ permiso especial"), lo que no compila y no define qué valores admite.
 **Decisión.** Se crea `enum TipoPermiso { ESTANDAR, ESPECIAL }` y el atributo pasa a ser
 `private TipoPermiso tipo`.
 
+**Estado actual.** ❌ No aplicado: `Permiso` tiene `private boolean especial`,
+`esEspecial()` devuelve ese booleano y `TipoPermiso.java` no existe. Si el grupo mantiene
+el `boolean`, este ADR debe marcarse como reemplazado.
+
 **Consecuencias.**
 
 - Un solo lugar define los tipos válidos.
@@ -58,6 +84,9 @@ permiso especial"), lo que no compila y no define qué valores admite.
 
 **Decisión.** Se usa `java.time.LocalDateTime`. El valor lo asigna el propio registro en
 el constructor (`LocalDateTime.now()`), no quien lo crea.
+
+**Estado actual.** ⚠️ Parcial: el atributo es `LocalDateTime`, pero el constructor está
+vacío y `fechaHora` queda en `null`.
 
 **Consecuencias.**
 
@@ -80,6 +109,9 @@ atributos descriptivos en minúscula) y mezcla abreviaturas con nombres completo
 
 **Decisión.** `Sector.identificacion`.
 
+**Estado actual.** ❌ No aplicado: `Sector` conserva `private int idS` y su getter
+`getIdS()`.
+
 **Consecuencias.**
 
 - Consistencia con `Empleado` y con `Reglas-Proyecto.md`.
@@ -96,6 +128,8 @@ volvería a tener su propia copia: exactamente el problema que el Singleton evit
 
 **Decisión.** `ControlAcceso` mantiene `private List<Permiso> permisos`, junto con las
 otras tres colecciones.
+
+**Estado actual.** ✅ Aplicado: la lista existe y se inicializa en el constructor privado.
 
 **Consecuencias.**
 
@@ -123,6 +157,10 @@ efecto secundario y ensucia las pruebas.
 - `RegistroAcceso registrarIntento(Empleado, Sector)`: llama a `verificarAcceso()`, arma
   el motivo, crea el registro, lo agrega a la colección y lo devuelve.
 
+**Estado actual.** ❌ No aplicado: existe `verificarAcceso(int, int)`, que devuelve
+`false` fijo, y `consultarHistorial()`, que devuelve `null`. No existe `registrarIntento`
+ni una firma que reciba `Empleado` y `Sector`.
+
 **Consecuencias.**
 
 - Se puede consultar "¿puede entrar?" sin ensuciar el historial (por ejemplo, para una
@@ -139,6 +177,8 @@ protección para concurrencia.
 
 **Decisión.** Se mantiene por claridad didáctica: es la forma clásica del patrón y el
 programa es monohilo.
+
+**Estado actual.** ✅ Aplicado en `getInstance()`.
 
 **Consecuencias.**
 
@@ -162,16 +202,20 @@ programa es monohilo.
 mediante getters y setters". Conceptualmente, `RegistroAcceso` es un dato histórico y
 debería ser inmutable.
 
-**Decisión.** Se cumplen los setters en todas las clases, incluida `RegistroAcceso`, para
-respetar la regla de la cátedra.
+**Decisión.** La decisión fue cumplir los setters en todas las clases, incluida
+`RegistroAcceso`, para respetar la regla de la cátedra.
+
+**Estado actual.** ⚠️ Parcial: solo `Empleado` tiene setters (`setNivelAcesso`). `Sector`,
+`Permiso` y `RegistroAcceso` no los tienen; además, sus constructores no reciben datos, así
+que hoy no se pueden crear objetos válidos desde fuera.
 
 **Consecuencias.**
 
 - Cumplimiento explícito de la regla (se puede señalar en la defensa).
 - Se pierde la inmutabilidad del historial: un setter podría alterar un registro ya
   guardado.
-- Mitigación: `ControlAcceso.obtenerHistorial()` devuelve una **copia** de la lista para
-  que no se modifique la colección interna desde afuera.
+- Mitigación prevista: que `consultarHistorial()` devuelva una **copia** de la lista para
+  que no se modifique la colección interna desde afuera. El código actual devuelve `null`.
 
 ---
 
