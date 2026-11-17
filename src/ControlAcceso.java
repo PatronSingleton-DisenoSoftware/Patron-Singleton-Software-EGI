@@ -8,6 +8,7 @@ public class ControlAcceso {
     private List<Permiso>permisos;
     private List <RegistroAcceso>registros;
     private static ControlAcceso instancia;
+
     // Constructor de acceso unico
     private ControlAcceso(){
         this.empleados = new ArrayList<>();
@@ -15,15 +16,15 @@ public class ControlAcceso {
         this.permisos = new ArrayList<>();
         this.registros = new ArrayList<>();
     }
-    // Getters y Setters
 
-// Metodo de acceso unico
+    // Metodo de acceso unico
     public static ControlAcceso getInstance() {
         if (instancia == null){
             instancia = new ControlAcceso();
         }
         return instancia;
     }
+
     // Metodos publicos o privados
     public void registrarEmpleado(Empleado empleado){
         for (Empleado existente : empleados){
@@ -36,6 +37,7 @@ public class ControlAcceso {
         System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
     }
 
+
     public void registrarSector(Sector sector){
         // Logica
     }
@@ -46,15 +48,92 @@ public class ControlAcceso {
         //Logica
     }
     public void revocarPermiso(Permiso permiso){
-        // Logica
+        if (permiso != null){
+            permiso.revocar();
+            System.out.println("Permiso revocado para el empleado: " + permiso.getEmpleado().getNombre());
+        }
     }
     public boolean verificarAcceso(int numEmpleado, int numSector){
-        // Retorno de ejemplo para que no marque el error
-        boolean ejemplo = false;
-        return ejemplo;
+        Empleado empleado = buscarEmpleado(numEmpleado);
+        Sector sector = buscarSector(numSector);
+
+        //1. Validaciones previas
+        if (empleado == null){
+            String motivo = "Empleado no registrado";
+            System.out.println("Acceso denegado: " + motivo);
+            return false;
+        }
+        if (sector == null) {
+            String motivo = "Sector inexistente";
+            System.out.println("Acceso denegado: " + motivo);
+            return false;
+        }
+        boolean autorizado = false;
+        String motivo = null;
+
+        // 2. Verificar jerarquía de niveles por ordinal (RN-01)
+        if (empleado.getNivelAcesso().ordinal() >= sector.getNivelRequerido().ordinal()) {
+            autorizado = true;
+            motivo = "Acceso autorizado por nivel";
+        }
+        // 3. Si el nivel no alcanza, verificar permiso especial activo (RN-02)
+        else if (tienePermisoEspecialActivo(empleado, sector)) {
+            autorizado = true;
+            motivo = "Acceso autorizado por permiso especial";
+        }
+        // 4. Rechazo por nivel insuficiente (RN-05)
+        else {
+            autorizado = false;
+            motivo = "Nivel insuficiente";
+            System.out.println("Acceso denegado a " + empleado.getNombre() + " al sector "
+                    + sector.getNombre() + ". Motivo: " + motivo);
+        }
+        // 5. Registrar intento en el historial (RN-04)
+        RegistroAcceso registro = new RegistroAcceso(empleado, sector, autorizado, motivo);
+        this.registros.add(registro);
+
+        if (autorizado) {
+            System.out.println("Acceso permitido a " + empleado.getNombre() + " al sector " + sector.getNombre());
+        }
+
+        return autorizado;
     }
+
+
     public RegistroAcceso consultarHistorial(){
         // Esta en null a modo de ejemplo para que no de error
         return null;
+    }
+
+    // --- Ayudantes -------
+    public Empleado buscarEmpleado(int identificacion){
+        for (Empleado emp : this.empleados){
+            if (emp.getIdentificacion() == identificacion){
+                return emp;
+            }
+        }
+        return null;
+    }
+
+    public Sector buscarSector(int idS){
+        for (Sector sec : this.sectores){
+            if (sec.getIdS() == idS){
+                return sec;
+            }
+        }
+        return null;
+    }
+
+    private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) {
+        for (Permiso p : this.permisos) {
+            // Coincide empleado y sector, es especial y sigue activo
+            if (p.getEmpleado().getIdentificacion() == empleado.getIdentificacion()
+                    && p.getSector().getIdS() == sector.getIdS()
+                    && p.esEspecial()
+                    && p.estaActivo()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
