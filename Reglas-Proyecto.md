@@ -1,5 +1,6 @@
 # REGLAS A TENER EN CUENTA:
 ***
+ - Lenguaje Elegido: JAVA:
  - Cada clase debe estar en un archivo unico.
  - Nombre de las clases siempre la primera letra con mayuscula (Ej: Class Mascota).
  - Los nombre de los atributos deben estar en minusculas.
