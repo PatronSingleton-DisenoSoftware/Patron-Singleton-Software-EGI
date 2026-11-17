@@ -29,10 +29,10 @@ public class ControlAcceso {
         for (Empleado existente : empleados){
             if (existente.getIdentificacion() == empleado.getIdentificacion()){
                 System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
-                break;   // corta acá: no se agrega
+                return;   // no se agrega
             }
         }
-        empleados.add(empleado);   // recién acá, fuera del for
+        empleados.add(empleado);
         System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
     }
 
