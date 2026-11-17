@@ -1,84 +1,83 @@
-@startuml EGI-Patron-Singleton
+﻿@startuml uml-clases
 ' Diagrama de clases de la Sección II.
 ' Renderizar en https://www.plantuml.com/plantuml/uml/ o con el plugin
 ' "PlantUML integration" de IntelliJ, y exportar a PNG para el PDF de entrega.
 
 skinparam classAttributeIconSize 0
 skinparam shadowing false
-skinparam linetype ortho
 
 title Sistema de Control de Acceso — Patrón Singleton
 
 class ControlAcceso {
-  - {static} instancia : ControlAcceso
-  - empleados : List<Empleado>
-  - sectores : List<Sector>
-  - permisos : List<Permiso>
-  - registros : List<RegistroAcceso>
-  - ControlAcceso()
-  + {static} getInstancia() : ControlAcceso
-  + registrarEmpleado(empleado : Empleado) : void
-  + registrarSector(sector : Sector) : void
-  + buscarEmpleado(identificacion : int) : Empleado
-  + buscarSector(identificacion : int) : Sector
-  + asignarNivelAcceso(identificacion : int, nivel : NivelAcceso) : void
-  + concederPermiso(empleado : Empleado, sector : Sector, tipo : TipoPermiso) : void
-  + revocarPermiso(empleado : Empleado, sector : Sector) : void
-  + verificarAcceso(empleado : Empleado, sector : Sector) : boolean
-  + registrarIntento(empleado : Empleado, sector : Sector) : RegistroAcceso
-  + obtenerHistorial() : List<RegistroAcceso>
+  {static} -instancia : ControlAcceso
+  -empleados : List<Empleado>
+  -sectores : List<Sector>
+  -permisos : List<Permiso>
+  -registros : List<RegistroAcceso>
+  -ControlAcceso()
+  {static} +getInstancia() : ControlAcceso
+  +registrarEmpleado(empleado : Empleado) : void
+  +registrarSector(sector : Sector) : void
+  +buscarEmpleado(identificacion : int) : Empleado
+  +buscarSector(identificacion : int) : Sector
+  +asignarNivelAcceso(identificacion : int, nivel : NivelAcceso) : void
+  +concederPermiso(empleado : Empleado, sector : Sector, tipo : TipoPermiso) : void
+  +revocarPermiso(empleado : Empleado, sector : Sector) : void
+  +verificarAcceso(empleado : Empleado, sector : Sector) : boolean
+  +registrarIntento(empleado : Empleado, sector : Sector) : RegistroAcceso
+  +obtenerHistorial() : List<RegistroAcceso>
 }
 
 class Empleado {
-  - identificacion : int
-  - dni : int
-  - nombre : String
-  - apellido : String
-  - nivelAcceso : NivelAcceso
-  + Empleado(identificacion : int, dni : int, nombre : String, apellido : String, nivel : NivelAcceso)
-  + getIdentificacion() : int
-  + getDni() : int
-  + getNombre() : String
-  + getApellido() : String
-  + getNivelAcceso() : NivelAcceso
-  + setNivelAcceso(nivel : NivelAcceso) : void
+  -identificacion : int
+  -dni : int
+  -nombre : String
+  -apellido : String
+  -nivelAcceso : NivelAcceso
+  +Empleado(identificacion : int, dni : int, nombre : String, apellido : String, nivel : NivelAcceso)
+  +getIdentificacion() : int
+  +getDni() : int
+  +getNombre() : String
+  +getApellido() : String
+  +getNivelAcceso() : NivelAcceso
+  +setNivelAcceso(nivel : NivelAcceso) : void
 }
 
 class Sector {
-  - identificacion : int
-  - nombre : String
-  - nivelRequerido : NivelAcceso
-  + Sector(identificacion : int, nombre : String, nivel : NivelAcceso)
-  + getIdentificacion() : int
-  + getNombre() : String
-  + getNivelRequerido() : NivelAcceso
-  + setNivelRequerido(nivel : NivelAcceso) : void
+  -identificacion : int
+  -nombre : String
+  -nivelRequerido : NivelAcceso
+  +Sector(identificacion : int, nombre : String, nivel : NivelAcceso)
+  +getIdentificacion() : int
+  +getNombre() : String
+  +getNivelRequerido() : NivelAcceso
+  +setNivelRequerido(nivel : NivelAcceso) : void
 }
 
 class Permiso {
-  - empleado : Empleado
-  - sector : Sector
-  - activo : boolean
-  - tipo : TipoPermiso
-  + Permiso(empleado : Empleado, sector : Sector, tipo : TipoPermiso)
-  + estaActivo() : boolean
-  + revocar() : void
-  + activar() : void
-  + esEspecial() : boolean
+  -empleado : Empleado
+  -sector : Sector
+  -activo : boolean
+  -tipo : TipoPermiso
+  +Permiso(empleado : Empleado, sector : Sector, tipo : TipoPermiso)
+  +estaActivo() : boolean
+  +revocar() : void
+  +activar() : void
+  +esEspecial() : boolean
 }
 
 class RegistroAcceso {
-  - empleado : Empleado
-  - sector : Sector
-  - fechaHora : LocalDateTime
-  - autorizado : boolean
-  - motivo : String
-  + RegistroAcceso(empleado : Empleado, sector : Sector, autorizado : boolean, motivo : String)
-  + getEmpleado() : Empleado
-  + getSector() : Sector
-  + getFechaHora() : LocalDateTime
-  + isAutorizado() : boolean
-  + getMotivo() : String
+  -empleado : Empleado
+  -sector : Sector
+  -fechaHora : LocalDateTime
+  -autorizado : boolean
+  -motivo : String
+  +RegistroAcceso(empleado : Empleado, sector : Sector, autorizado : boolean, motivo : String)
+  +getEmpleado() : Empleado
+  +getSector() : Sector
+  +getFechaHora() : LocalDateTime
+  +isAutorizado() : boolean
+  +getMotivo() : String
 }
 
 enum NivelAcceso {
@@ -88,9 +87,9 @@ enum NivelAcceso {
   TECNICO = 4
   DIRECTIVO = 5
   --
-  - nivel : int
-  + getNivel() : int
-  + alcanzaA(requerido : NivelAcceso) : boolean
+  -nivel : int
+  +getNivel() : int
+  +alcanzaA(requerido : NivelAcceso) : boolean
 }
 
 enum TipoPermiso {
@@ -99,7 +98,7 @@ enum TipoPermiso {
 }
 
 class Main {
-  + {static} main(args : String[]) : void
+  {static} +main(args : String[]) : void
 }
 
 ControlAcceso "1" o-- "*" Empleado : administra

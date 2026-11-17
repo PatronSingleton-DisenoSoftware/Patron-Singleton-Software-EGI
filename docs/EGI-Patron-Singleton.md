@@ -140,116 +140,14 @@ requisito de seguridad. Esa es la justificación técnica que pide la Sección I
 
 ## 2.1. Diagrama de clases UML
 
-```mermaid
-classDiagram
-    direction LR
+![Figura 1. Diagrama de clases UML del sistema de control de acceso](assets/uml-clases.png)
 
-    class ControlAcceso {
-        -static ControlAcceso instancia
-        -List~Empleado~ empleados
-        -List~Sector~ sectores
-        -List~Permiso~ permisos
-        -List~RegistroAcceso~ registros
-        -ControlAcceso()
-        +static ControlAcceso getInstancia()
-        +void registrarEmpleado(Empleado)
-        +void registrarSector(Sector)
-        +Empleado buscarEmpleado(int)
-        +Sector buscarSector(int)
-        +void asignarNivelAcceso(int, NivelAcceso)
-        +void concederPermiso(Empleado, Sector, TipoPermiso)
-        +void revocarPermiso(Empleado, Sector)
-        +boolean verificarAcceso(Empleado, Sector)
-        +RegistroAcceso registrarIntento(Empleado, Sector)
-        +List~RegistroAcceso~ obtenerHistorial()
-    }
+*Fuente editable del diagrama: [`assets/uml-clases.puml`](assets/uml-clases.puml). Los
+miembros `static` aparecen subrayados; la visibilidad (`-` privado, `+` público) se
+muestra en cada miembro.*
 
-    class Empleado {
-        -int identificacion
-        -int dni
-        -String nombre
-        -String apellido
-        -NivelAcceso nivelAcceso
-        +Empleado(int, int, String, String, NivelAcceso)
-        +int getIdentificacion()
-        +int getDni()
-        +String getNombre()
-        +String getApellido()
-        +NivelAcceso getNivelAcceso()
-        +void setNivelAcceso(NivelAcceso)
-    }
-
-    class Sector {
-        -int identificacion
-        -String nombre
-        -NivelAcceso nivelRequerido
-        +Sector(int, String, NivelAcceso)
-        +int getIdentificacion()
-        +String getNombre()
-        +NivelAcceso getNivelRequerido()
-    }
-
-    class Permiso {
-        -Empleado empleado
-        -Sector sector
-        -boolean activo
-        -TipoPermiso tipo
-        +Permiso(Empleado, Sector, TipoPermiso)
-        +boolean estaActivo()
-        +void revocar()
-        +void activar()
-        +boolean esEspecial()
-    }
-
-    class RegistroAcceso {
-        -Empleado empleado
-        -Sector sector
-        -LocalDateTime fechaHora
-        -boolean autorizado
-        -String motivo
-        +RegistroAcceso(Empleado, Sector, boolean, String)
-        +Empleado getEmpleado()
-        +Sector getSector()
-        +LocalDateTime getFechaHora()
-        +boolean isAutorizado()
-        +String getMotivo()
-    }
-
-    class NivelAcceso {
-        <<enumeration>>
-        GENERAL
-        INTERNO
-        RESTRINGIDO
-        TECNICO
-        DIRECTIVO
-        -int nivel
-        +int getNivel()
-        +boolean alcanzaA(NivelAcceso)
-    }
-
-    class TipoPermiso {
-        <<enumeration>>
-        ESTANDAR
-        ESPECIAL
-    }
-
-    ControlAcceso "1" o-- "*" Empleado : administra
-    ControlAcceso "1" o-- "*" Sector : administra
-    ControlAcceso "1" o-- "*" Permiso : concede y revoca
-    ControlAcceso "1" o-- "*" RegistroAcceso : conserva
-    Permiso --> Empleado
-    Permiso --> Sector
-    RegistroAcceso --> Empleado
-    RegistroAcceso --> Sector
-    Empleado --> NivelAcceso
-    Sector --> NivelAcceso
-    Permiso --> TipoPermiso
-```
-
-> **Para el PDF de entrega:** exportar el diagrama a imagen (draw.io, StarUML o
-> [plantuml.com](https://www.plantuml.com/plantuml/uml/)) e insertarlo en el documento. Hay
-> una versión lista para renderizar en `docs/assets/uml-clases.puml`. Mermaid se ve en
-> GitHub y en IntelliJ, pero no todos los conversores Markdown→PDF lo renderizan.
+> La imagen está embebida en este documento, así que se incluye al exportar a PDF sin
+> depender de que el conversor renderice Mermaid.
 
 ## 2.2. Roles del patrón Singleton
 
@@ -596,7 +494,7 @@ Decisiones tomadas antes de programar, para evitar retrabajo. El detalle extendi
 | 1 | El documento indica el patrón y el lenguaje elegidos | ✅ Singleton · Java |
 | 2 | El escenario es un problema de negocio real, distinto de los vistos en clase | ✅ ENVIDIA / control de acceso |
 | 3 | La Sección I justifica el patrón frente a una solución sin patrones | ✅ §1.2 y §1.3 |
-| 4 | El diagrama UML respeta los roles del patrón y muestra visibilidad | ✅ §2.1 y §2.2 (exportar a imagen para el PDF) |
+| 4 | El diagrama UML respeta los roles del patrón y muestra visibilidad | ✅ §2.1 (imagen embebida) y §2.2 |
 | 5 | El código está completo, se ejecuta tal como se entrega y respeta el patrón | ❌ Bloqueante: ver §3.5 |
 | 6 | El programa tiene su propia clase de prueba con flujo simulado | ⚠️ Versión mínima; falta el flujo completo |
 | 7 | El código está en GitHub con acceso para el docente y el enlace figura en la Sección III | ❌ [Completar] |
@@ -608,7 +506,6 @@ Decisiones tomadas antes de programar, para evitar retrabajo. El detalle extendi
 1. Implementar el dominio completo (`Sector`, `Permiso`, `RegistroAcceso`, `NivelAcceso`,
    `TipoPermiso` y los métodos de `ControlAcceso`).
 2. Completar `Main` con el flujo de 6 pasos de §3.4 y verificar las pruebas CP-01 a CP-13.
-3. Exportar el UML a imagen e insertarlo en la Sección II.
-4. Publicar el repositorio y pegar la URL en §3.6.
-5. Completar los datos personales de la portada.
-6. Exportar este documento a PDF y subirlo al campus virtual.
+3. Publicar el repositorio y pegar la URL en §3.6.
+4. Completar los datos de los integrantes en la portada.
+5. Exportar este documento a PDF y subirlo al campus virtual.

@@ -41,9 +41,8 @@ Software, ITU UNCuyo Sede Este).
 1. Completar el código (`Sector`, `Permiso`, `RegistroAcceso`, `NivelAcceso`,
    `TipoPermiso` y los métodos de `ControlAcceso`).
 2. Completar `Main` con el flujo simulado (misma instancia + permiso concedido y revocado).
-3. Exportar `docs/assets/uml-clases.puml` a imagen e insertarla en la Sección II.
-4. Publicar el repositorio y pegar la URL en la Sección III.
-5. Completar los datos personales y exportar el documento a PDF.
+3. Publicar el repositorio y pegar la URL en la Sección III.
+4. Completar los datos de los integrantes y exportar el documento a PDF.
 
 La lista completa está en `docs/EGI-Patron-Singleton.md` (sección "Lista de control de la
 consigna").

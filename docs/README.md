@@ -66,6 +66,45 @@ El detalle está en la
 - Idioma: español.
 - Formato: Markdown (`.md`), codificación UTF-8.
 - Nombres de archivo en minúsculas, con prefijo numérico para mantener el orden de lectura.
-- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` (IntelliJ lo renderiza en la vista previa, sin plugins). Para el UML de la entrega, exportar `assets/uml-clases.puml` a PNG con [plantuml.com](https://www.plantuml.com/plantuml/uml/) o draw.io e insertar la imagen en el PDF.
+- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` (IntelliJ lo renderiza en la vista previa, sin plugins). El UML de la entrega está como imagen (`assets/uml-clases.png`) generada desde `assets/uml-clases.puml`; para regenerarla, ver las instrucciones del final de este archivo.
 - Imágenes y capturas: carpeta `docs/assets/` y referencia relativa desde el documento que las usa.
 - Código citado: bloques ```` ```java ```` con el lenguaje indicado.
+
+## Regenerar el diagrama UML (PNG)
+
+Fuente: `assets/uml-clases.puml`. Salida: `assets/uml-clases.png` (ya incluida en el
+documento de entrega).
+
+### Opción A — IntelliJ IDEA (sin salir del IDE)
+
+1. `Settings → Plugins → Marketplace` → instalar **PlantUML Integration**.
+2. Abrir `docs/assets/uml-clases.puml`.
+3. Clic derecho en el editor → **Save diagram** (o el ícono de exportar de la barra de
+   herramientas) → elegir PNG.
+
+> Para el layout clásico con los miembros `static` subrayados, el plugin necesita
+> Graphviz instalado y `GRAPHVIZ_DOT` apuntando a `dot.exe`.
+
+### Opción B — Online (la más rápida)
+
+1. Abrir [plantuml.com/plantuml/uml](https://www.plantuml.com/plantuml/uml/).
+2. Pegar el contenido del `.puml`.
+3. **Download PNG** (o usar [kroki.io](https://kroki.io/#/plantuml) con el mismo texto).
+
+Sirve para regenerar sin instalar nada; el diagrama es público y no contiene datos
+sensibles.
+
+### Opción C — Local con `plantuml.jar`
+
+```powershell
+# descargar una vez
+Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2024.7/plantuml-1.2024.7.jar" -OutFile plantuml.jar
+
+# renderizar (sin Graphviz, usa el layout Smetana)
+java '-Djava.awt.headless=true' -jar plantuml.jar -tpng '-Playout=smetana' docs\assets\uml-clases.puml -o docs\assets
+```
+
+Con Smetana el PNG se genera igual, pero el subrayado de `static` puede no verse. Para el
+PNG final conviene Graphviz (opciones A o B).
+
+> El nombre del PNG lo toma de la línea `@startuml uml-clases`.
