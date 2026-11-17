@@ -1,0 +1,103 @@
+﻿@startuml uml-clases
+' Diagrama de clases de la Sección II, alineado al código de src/ en main.
+' Renderizar en https://www.plantuml.com/plantuml/uml/ o con el plugin
+' "PlantUML integration" de IntelliJ, y exportar a PNG para el PDF de entrega.
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+title Sistema de Control de Acceso — Patrón Singleton (estructura actual)
+
+class ControlAcceso {
+  {static} -instancia : ControlAcceso
+  -empleados : List<Empleado>
+  -sectores : List<Sector>
+  -permisos : List<Permiso>
+  -registros : List<RegistroAcceso>
+  -ControlAcceso()
+  {static} +getInstance() : ControlAcceso
+  +registrarEmpleado(empleado : Empleado) : void
+  +registrarSector(sector : Sector) : void
+  +asignarNivel(empleado : Empleado, nivelAcceso : NivelAcceso) : void
+  +concederPermiso(permiso : Permiso) : void
+  +revocarPermiso(permiso : Permiso) : void
+  +verificarAcceso(numEmpleado : int, numSector : int) : boolean
+  +consultarHistorial() : RegistroAcceso
+}
+
+class Empleado {
+  -identificacion : int
+  -dni : int
+  -nombre : String
+  -apellido : String
+  -nivelAcesso : NivelAcceso
+  +Empleado(identificacion : int, dni : int, nombre : String, apellido : String, nivelAcceso : NivelAcceso)
+  +getIdentificacion() : int
+  +getDni() : int
+  +getNombre() : String
+  +getApellido() : String
+  +getNivelAcesso() : NivelAcceso
+  +setNivelAcesso(nivelAcesso : NivelAcceso) : void
+  +toString() : String
+}
+
+class Sector {
+  -idS : int
+  -nombre : String
+  -nivelRequerido : NivelAcceso
+  +Sector()
+  +getIdS() : int
+  +getNombre() : String
+  +getNivelRequerido() : NivelAcceso
+}
+
+class Permiso {
+  -empleado : Empleado
+  -sector : Sector
+  -activo : boolean
+  -especial : boolean
+  +Permiso()
+  +getEmpleado() : Empleado
+  +getSector() : Sector
+  +estaActivo() : boolean
+  +esEspecial() : boolean
+  +revocar() : void
+}
+
+class RegistroAcceso {
+  -empleado : Empleado
+  -sector : Sector
+  -fechaHora : LocalDateTime
+  -autorizado : boolean
+  -motivo : String
+  +RegistroAcceso()
+  +getFechaHora() : LocalDateTime
+  +isAutorizado() : boolean
+  +getMotivo() : String
+}
+
+enum NivelAcceso {
+  NIVEL_1
+  NIVEL_2
+  NIVEL_3
+  NIVEL_4
+  NIVEL_5
+}
+
+class Main {
+  {static} +main(args : String[]) : void
+}
+
+ControlAcceso "1" o-- "*" Empleado : administra
+ControlAcceso "1" o-- "*" Sector : administra
+ControlAcceso "1" o-- "*" Permiso : concede y revoca
+ControlAcceso "1" o-- "*" RegistroAcceso : conserva
+Permiso --> Empleado
+Permiso --> Sector
+RegistroAcceso --> Empleado
+RegistroAcceso --> Sector
+Empleado --> NivelAcceso
+Sector --> NivelAcceso
+Main ..> ControlAcceso : usa
+
+@enduml
