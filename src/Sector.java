@@ -1,13 +1,17 @@
 public class Sector {
- private int idS;
- private String nombre;
- private NivelAcceso nivelRequerido;
+    private int idS;
+    private String nombre;
+    private NivelAcceso nivelRequerido;
 
- public Sector( int idS, String nombre, NivelAcceso nivelRequerido){
-    this.idS = idS;
-    this.nombre = nombre;
-    this.nivelRequerido = nivelRequerido;
- }
+    public Sector(){
+
+    }
+
+    public Sector(int idS, String nombre, NivelAcceso nivelRequerido){
+        this.idS = idS;
+        this.nombre = nombre;
+        this.nivelRequerido = nivelRequerido;
+    }
 
     public String getNombre() {
         return nombre;
@@ -25,11 +29,11 @@ public class Sector {
         this.idS = idS;
     }
 
-    public void setNivelRequerido(NivelAcceso nivelRequerido) {
-        this.nivelRequerido = nivelRequerido;
-    }
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public void setNivelRequerido(NivelAcceso nivelRequerido) {
+        this.nivelRequerido = nivelRequerido;
     }
 }
