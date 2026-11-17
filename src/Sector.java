@@ -3,8 +3,10 @@ public class Sector {
  private String nombre;
  private NivelAcceso nivelRequerido;
 
- public Sector(){
-
+ public Sector( int idS, String nombre, NivelAcceso nivelRequerido){
+    this.idS = idS;
+    this.nombre = nombre;
+    this.nivelRequerido = nivelRequerido;
  }
 
     public String getNombre() {
@@ -17,5 +19,17 @@ public class Sector {
 
     public NivelAcceso getNivelRequerido() {
         return nivelRequerido;
+    }
+
+    public void setIdS(int idS) {
+        this.idS = idS;
+    }
+
+    public void setNivelRequerido(NivelAcceso nivelRequerido) {
+        this.nivelRequerido = nivelRequerido;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 }

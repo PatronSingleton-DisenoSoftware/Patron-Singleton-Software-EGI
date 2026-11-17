@@ -26,8 +26,16 @@ public class ControlAcceso {
     }
     // Metodos publicos o privados
     public void registrarEmpleado(Empleado empleado){
-        //Logica
+        for (Empleado existente : empleados){
+            if (existente.getIdentificacion() == empleado.getIdentificacion()){
+                System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
+                break;   // corta acá: no se agrega
+            }
+        }
+        empleados.add(empleado);   // recién acá, fuera del for
+        System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
     }
+
     public void registrarSector(Sector sector){
         // Logica
     }
