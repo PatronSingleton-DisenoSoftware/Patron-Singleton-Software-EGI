@@ -3,12 +3,14 @@ public class Empleado {
     private int dni;
     private String nombre;
     private String apellido;
+    private NivelAcceso nivelAcesso;
 
-    public Empleado(int identificacion, int dni, String nombre, String apellido){
+    public Empleado(int identificacion, int dni, String nombre, String apellido, NivelAcceso nivelAcceso){
         this.identificacion = identificacion;
         this.dni = dni;
         this.nombre = nombre;
         this.apellido = apellido;
+        this.nivelAcesso = nivelAcceso;
     }
 
     public int getDni() {
@@ -27,5 +29,17 @@ public class Empleado {
         return nombre;
     }
 
+    public NivelAcceso getNivelAcesso() {
+        return nivelAcesso;
+    }
+
+    public void setNivelAcesso(NivelAcceso nivelAcesso) {
+        this.nivelAcesso = nivelAcesso;
+    }
+
+    @Override
+    public String toString() {
+        return "ID-Empleado " + getIdentificacion()+ "Nombre "+ getNombre() + "Apellido " + getApellido() + "Nivel de Acceso " + getNivelAcesso();
+    }
 }
 
