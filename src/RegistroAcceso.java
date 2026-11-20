@@ -7,9 +7,6 @@ public class RegistroAcceso {
     private boolean autorizado;
     private String motivo;
 
-    public RegistroAcceso(){
-
-    }
 
     public RegistroAcceso(Empleado empleado, Sector sector, boolean autorizado, String motivo){
         this.empleado = empleado;

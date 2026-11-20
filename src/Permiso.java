@@ -4,9 +4,6 @@ public class Permiso {
     private boolean activo;
     private boolean especial;
 
-    public Permiso(){
-
-    }
 
     public Permiso(Empleado empleado, Sector sector, boolean especial){
         this.empleado = empleado;

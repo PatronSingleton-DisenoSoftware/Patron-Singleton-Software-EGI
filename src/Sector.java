@@ -3,9 +3,6 @@ public class Sector {
     private String nombre;
     private NivelAcceso nivelRequerido;
 
-    public Sector(){
-
-    }
 
     public Sector(int idS, String nombre, NivelAcceso nivelRequerido){
         this.idS = idS;
