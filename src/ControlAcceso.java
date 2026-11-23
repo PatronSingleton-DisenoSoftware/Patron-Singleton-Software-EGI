@@ -171,9 +171,14 @@ public class ControlAcceso {
     }
 
 
-    public RegistroAcceso consultarHistorial(){
-        // Esta en null a modo de ejemplo para que no de error
-        return null;
+    // Devuelve el historial de intentos
+    public List<RegistroAcceso> consultarHistorial(){
+        if (this.registros.isEmpty()){
+            System.out.println("El historial esta vacio: no hay intentos de acceso registrados");
+            return new ArrayList<>();
+        }
+        // Se devuelve una copia para que el cliente no modifique la lista interna
+        return new ArrayList<>(this.registros);
     }
 
     // --- Ayudantes -------

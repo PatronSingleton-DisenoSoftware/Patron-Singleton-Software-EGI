@@ -22,7 +22,11 @@ class ControlAcceso {
   +concederPermiso(permiso : Permiso) : void
   +revocarPermiso(permiso : Permiso) : void
   +verificarAcceso(numEmpleado : int, numSector : int) : boolean
-  +consultarHistorial() : RegistroAcceso
+  +consultarHistorial() : List<RegistroAcceso>
+  +buscarEmpleado(identificacion : int) : Empleado
+  +buscarSector(idS : int) : Sector
+  -buscarPermiso(empleado : Empleado, sector : Sector) : Permiso
+  -tienePermisoEspecialActivo(empleado : Empleado, sector : Sector) : boolean
 }
 
 class Empleado {
@@ -45,10 +49,13 @@ class Sector {
   -idS : int
   -nombre : String
   -nivelRequerido : NivelAcceso
-  +Sector()
+  +Sector(idS : int, nombre : String, nivelRequerido : NivelAcceso)
   +getIdS() : int
   +getNombre() : String
   +getNivelRequerido() : NivelAcceso
+  +setIdS(idS : int) : void
+  +setNombre(nombre : String) : void
+  +setNivelRequerido(nivelRequerido : NivelAcceso) : void
 }
 
 class Permiso {
@@ -56,11 +63,15 @@ class Permiso {
   -sector : Sector
   -activo : boolean
   -especial : boolean
-  +Permiso()
+  +Permiso(empleado : Empleado, sector : Sector, especial : boolean)
   +getEmpleado() : Empleado
   +getSector() : Sector
   +estaActivo() : boolean
   +esEspecial() : boolean
+  +setEmpleado(empleado : Empleado) : void
+  +setSector(sector : Sector) : void
+  +setActivo(activo : boolean) : void
+  +setEspecial(especial : boolean) : void
   +revocar() : void
 }
 
@@ -70,10 +81,18 @@ class RegistroAcceso {
   -fechaHora : LocalDateTime
   -autorizado : boolean
   -motivo : String
-  +RegistroAcceso()
+  +RegistroAcceso(empleado : Empleado, sector : Sector, autorizado : boolean, motivo : String)
+  +getEmpleado() : Empleado
+  +getSector() : Sector
   +getFechaHora() : LocalDateTime
   +isAutorizado() : boolean
   +getMotivo() : String
+  +setEmpleado(empleado : Empleado) : void
+  +setSector(sector : Sector) : void
+  +setFechaHora(fechaHora : LocalDateTime) : void
+  +setAutorizado(autorizado : boolean) : void
+  +setMotivo(motivo : String) : void
+  +toString() : String
 }
 
 enum NivelAcceso {
@@ -85,6 +104,7 @@ enum NivelAcceso {
 }
 
 class Main {
+  {static} -funcionRegistrarEmpleado(entradaDatos : Scanner, control : ControlAcceso) : void
   {static} +main(args : String[]) : void
 }
 

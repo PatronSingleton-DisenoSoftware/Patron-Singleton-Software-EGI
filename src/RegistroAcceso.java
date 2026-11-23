@@ -55,4 +55,13 @@ public class RegistroAcceso {
     public void setMotivo(String motivo) {
         this.motivo = motivo;
     }
+
+    @Override
+    public String toString() {
+        String nombreEmpleado = (getEmpleado() != null) ? getEmpleado().getNombre() : "sin empleado";
+        String nombreSector = (getSector() != null) ? getSector().getNombre() : "sin sector";
+        String resultado = isAutorizado() ? "PERMITIDO" : "DENEGADO";
+        return "[" + getFechaHora() + "] " + nombreEmpleado + " -> " + nombreSector
+                + " | " + resultado + " | " + getMotivo();
+    }
 }

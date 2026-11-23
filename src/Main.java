@@ -15,8 +15,23 @@ public class Main {
         System.out.print("Apellido: ");
         String apellido = entradaDatos.nextLine();
 
-        System.out.print("Nivel (1 a 5): ");
-        int nivel = entradaDatos.nextInt();
+        System.out.print("Nivel 1 Acceso General\n" +
+                "Nivel 2 Acceso Interno\n" +
+                "Nivel 3 Acceso Restringido\n" +
+                "Nivel 4 Acceso Tecnico\n" +
+                "Nivel 5 Acceso Directivo\n"
+        );
+
+        // Repite la pregunta hasta que el nivel sea valido
+        int nivel;
+        do {
+            System.out.print("Nivel: ");
+            nivel = entradaDatos.nextInt();
+            if (nivel < 1 || nivel > 5) {
+                System.out.println("Nivel invalido. Debe ser entre 1 y 5.");
+            }
+        } while (nivel < 1 || nivel > 5);
+
         NivelAcceso nivelAcceso = NivelAcceso.values()[nivel - 1];
 
         Empleado empleado = new Empleado(identificacion, dni, nombre, apellido, nivelAcceso);
@@ -29,6 +44,7 @@ public class Main {
         boolean salir = false;
 
         while (!salir) {
+            System.out.println("Menu Principal - Elegi una opcion: ");
             System.out.println("\n1 - Agregar empleado");
             System.out.println("0 - Salir");
             System.out.print("Opcion: ");
