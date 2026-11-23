@@ -14,17 +14,18 @@
 
 **Integrantes:**
 
-| Nombre y apellido | Legajo |
-|-------------------|--------|
-| [Completar] | [Completar] |
-| [Completar] | [Completar] |
-| [Completar] | [Completar] |
+| Nombre y apellido  |
+|--------------------|
+| Yampa Candito      |
+| Federico Rodriguez |
+| Giuliano Gilio     |
+| Lucas Marasco      |
 
 **Patrón elegido:** Singleton
 
 **Lenguaje:** Java 23 (compatible con Java 17+)
 
-**Fecha de entrega:** [Completar]
+**Fecha de entrega:** 30/11/2026
 
 **Versión del documento:** 1.0
 
