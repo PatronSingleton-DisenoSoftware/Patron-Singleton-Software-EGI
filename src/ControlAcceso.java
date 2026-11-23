@@ -24,14 +24,17 @@ public class ControlAcceso {
         }
         return instancia;
     }
-
     // Metodos publicos o privados
     public void registrarEmpleado(Empleado empleado){
-        for (Empleado existente : empleados){
-            if (existente.getIdentificacion() == empleado.getIdentificacion()){
-                System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
-                return;   // no se agrega
-            }
+        // Guarda: no se aceptan datos vacios
+        if (empleado == null){
+            System.out.println("Error, no puede cargar datos vacios");
+            return;
+        }
+        // Un empleado no se puede dar de alta dos veces
+        if (buscarEmpleado(empleado.getIdentificacion()) != null){
+            System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
+            return;   // no se agrega
         }
         empleados.add(empleado);
         System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
@@ -39,19 +42,87 @@ public class ControlAcceso {
 
 
     public void registrarSector(Sector sector){
-        // Logica
+        // Guarda: no se aceptan datos vacios
+        if (sector == null){
+            System.out.println("Error, no puede cargar datos vacios");
+            return;
+        }
+        // Un sector no se puede dar de alta dos veces
+        if (buscarSector(sector.getIdS()) != null){
+            System.out.println("Ya existe un sector con identificacion " + sector.getIdS());
+            return;   // no se agrega
+        }
+        sectores.add(sector);
+        System.out.println("Sector registrado: " + sector.getNombre());
     }
     public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso){
-        // Logica
+        // Guarda: no se aceptan datos vacios
+        if (empleado == null || nivelAcceso == null){
+            System.out.println("Error, no puede cargar datos vacios");
+            return;
+        }
+        // Solo se le asigna nivel a un empleado ya registrado
+        Empleado registrado = buscarEmpleado(empleado.getIdentificacion());
+        if (registrado == null){
+            System.out.println("No existe un empleado con identificacion " + empleado.getIdentificacion());
+            return;
+        }
+        registrado.setNivelAcesso(nivelAcceso);
+        System.out.println("Nivel de " + registrado.getNombre() + " actualizado a " + nivelAcceso);
     }
     public void concederPermiso(Permiso permiso){
-        //Logica
+        // Guarda: no se aceptan datos vacios
+        if (permiso == null || permiso.getEmpleado() == null || permiso.getSector() == null){
+            System.out.println("Error, no puede cargar datos vacios");
+            return;
+        }
+        Empleado empleado = permiso.getEmpleado();
+        Sector sector = permiso.getSector();
+        // CP-12: el permiso necesita un empleado y un sector que ya existan
+        if (buscarEmpleado(empleado.getIdentificacion()) == null){
+            System.out.println("No existe el empleado con identificacion " + empleado.getIdentificacion()
+                    + ". Permiso rechazado (CP-12)");
+            return;
+        }
+        if (buscarSector(sector.getIdS()) == null){
+            System.out.println("No existe el sector con identificacion " + sector.getIdS()
+                    + ". Permiso rechazado (CP-12)");
+            return;
+        }
+        // Un mismo empleado y sector no se cargan dos veces
+        Permiso existente = buscarPermiso(empleado, sector);
+        if (existente != null && existente.estaActivo()){
+            System.out.println("Ya existe un permiso activo para ese empleado y sector");
+            return;
+        }
+        // Si estaba revocado, se vuelve a habilitar en vez de duplicar
+        if (existente != null){
+            existente.setActivo(true);
+            System.out.println("Permiso reactivado para " + empleado.getNombre() + " en " + sector.getNombre());
+            return;
+        }
+        permisos.add(permiso);
+        System.out.println("Permiso concedido a " + empleado.getNombre() + " en " + sector.getNombre());
     }
     public void revocarPermiso(Permiso permiso){
-        if (permiso != null){
-            permiso.revocar();
-            System.out.println("Permiso revocado para el empleado: " + permiso.getEmpleado().getNombre());
+        // Guarda: no se aceptan datos vacios
+        if (permiso == null || permiso.getEmpleado() == null || permiso.getSector() == null){
+            System.out.println("Error, no puede cargar datos vacios");
+            return;
         }
+        // Se revoca el permiso guardado, no el objeto que llega por parametro
+        Permiso existente = buscarPermiso(permiso.getEmpleado(), permiso.getSector());
+        if (existente == null){
+            System.out.println("No existe un permiso para ese empleado y sector");
+            return;
+        }
+        if (!existente.estaActivo()){
+            System.out.println("El permiso ya estaba revocado");
+            return;
+        }
+        existente.revocar();
+        System.out.println("Permiso revocado a " + permiso.getEmpleado().getNombre()
+                + " en " + permiso.getSector().getNombre());
     }
     public boolean verificarAcceso(int numEmpleado, int numSector){
         Empleado empleado = buscarEmpleado(numEmpleado);
@@ -119,6 +190,17 @@ public class ControlAcceso {
         for (Sector sec : this.sectores){
             if (sec.getIdS() == idS){
                 return sec;
+            }
+        }
+        return null;
+    }
+
+    private Permiso buscarPermiso(Empleado empleado, Sector sector){
+        for (Permiso permiso : permisos){
+            if (permiso.getEmpleado() != null && permiso.getSector() != null
+                    && permiso.getEmpleado().getIdentificacion() == empleado.getIdentificacion()
+                    && permiso.getSector().getIdS() == sector.getIdS()){
+                return permiso;
             }
         }
         return null;
