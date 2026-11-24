@@ -24,6 +24,7 @@ public class ControlAcceso {
         }
         return instancia;
     }
+
     // Metodos publicos o privados
     public void registrarEmpleado(Empleado empleado){
         // Guarda: no se aceptan datos vacios
@@ -39,8 +40,7 @@ public class ControlAcceso {
         empleados.add(empleado);
         System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
     }
-
-
+    
     public void registrarSector(Sector sector){
         // Guarda: no se aceptan datos vacios
         if (sector == null){
@@ -55,6 +55,7 @@ public class ControlAcceso {
         sectores.add(sector);
         System.out.println("Sector registrado: " + sector.getNombre());
     }
+
     public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso){
         // Guarda: no se aceptan datos vacios
         if (empleado == null || nivelAcceso == null){
@@ -70,6 +71,7 @@ public class ControlAcceso {
         registrado.setNivelAcesso(nivelAcceso);
         System.out.println("Nivel de " + registrado.getNombre() + " actualizado a " + nivelAcceso);
     }
+
     public void concederPermiso(Permiso permiso){
         // Guarda: no se aceptan datos vacios
         if (permiso == null || permiso.getEmpleado() == null || permiso.getSector() == null){
@@ -104,6 +106,7 @@ public class ControlAcceso {
         permisos.add(permiso);
         System.out.println("Permiso concedido a " + empleado.getNombre() + " en " + sector.getNombre());
     }
+
     public void revocarPermiso(Permiso permiso){
         // Guarda: no se aceptan datos vacios
         if (permiso == null || permiso.getEmpleado() == null || permiso.getSector() == null){
@@ -124,6 +127,7 @@ public class ControlAcceso {
         System.out.println("Permiso revocado a " + permiso.getEmpleado().getNombre()
                 + " en " + permiso.getSector().getNombre());
     }
+    
     public boolean verificarAcceso(int numEmpleado, int numSector){
         Empleado empleado = buscarEmpleado(numEmpleado);
         Sector sector = buscarSector(numSector);
@@ -142,8 +146,8 @@ public class ControlAcceso {
         boolean autorizado = false;
         String motivo = null;
 
-        // 2. Verificar jerarquía de niveles por ordinal (RN-01)
-        if (empleado.getNivelAcesso().ordinal() >= sector.getNivelRequerido().ordinal()) {
+        // 2. Verificar jerarquía de niveles (RN-01)
+        if (empleado.getNivelAcesso().alcanzaA(sector.getNivelRequerido())) {
             autorizado = true;
             motivo = "Acceso autorizado por nivel";
         }

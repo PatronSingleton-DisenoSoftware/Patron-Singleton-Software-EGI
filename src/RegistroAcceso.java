@@ -1,6 +1,10 @@
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class RegistroAcceso {
+    private static final DateTimeFormatter FORMATO_FECHA_HORA =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
     private Empleado empleado;
     private Sector sector;
     private LocalDateTime fechaHora;
@@ -9,11 +13,13 @@ public class RegistroAcceso {
 
 
     public RegistroAcceso(Empleado empleado, Sector sector, boolean autorizado, String motivo){
+        // empleado y sector pueden ser null si el intento se hizo con una
+        // identificacion que no existe; el motivo explica el rechazo.
         this.empleado = empleado;
         this.sector = sector;
         this.autorizado = autorizado;
-        this.motivo = motivo;
         this.fechaHora = LocalDateTime.now();
+        setMotivo(motivo);   // valida que el motivo no este vacio (CP-11)
     }
 
     public Empleado getEmpleado() {
@@ -45,6 +51,9 @@ public class RegistroAcceso {
     }
 
     public void setFechaHora(LocalDateTime fechaHora) {
+        if (fechaHora == null) {
+            throw new IllegalArgumentException("La fecha y hora del registro no puede ser nula");
+        }
         this.fechaHora = fechaHora;
     }
 
@@ -53,6 +62,28 @@ public class RegistroAcceso {
     }
 
     public void setMotivo(String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException("El motivo del registro no puede estar vacio");
+        }
         this.motivo = motivo;
+    }
+
+    @Override
+    public String toString() {
+        // Si el intento vino con datos inexistentes, se muestra el texto en vez de un null
+        String nombreEmpleado = (empleado == null)
+                ? "Empleado no registrado"
+                : empleado.getNombre() + " " + empleado.getApellido()
+                        + " (ID " + empleado.getIdentificacion() + ")";
+        String nombreSector = (sector == null)
+                ? "Sector inexistente"
+                : sector.getNombre() + " (ID " + sector.getIdS() + ")";
+        String resultado = autorizado ? "AUTORIZADO" : "DENEGADO";
+
+        return fechaHora.format(FORMATO_FECHA_HORA) + " | "
+                + nombreEmpleado + " | "
+                + nombreSector + " | "
+                + resultado + " | "
+                + motivo;
     }
 }
