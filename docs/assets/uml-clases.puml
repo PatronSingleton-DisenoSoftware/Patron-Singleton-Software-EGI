@@ -1,12 +1,11 @@
-﻿@startuml uml-clases
-' Diagrama de clases de la Sección II, alineado al código de src/ en main.
-' Renderizar en https://www.plantuml.com/plantuml/uml/ o con el plugin
-' "PlantUML integration" de IntelliJ, y exportar a PNG para el PDF de entrega.
+@startuml uml-clases
+' Diagrama de clases de la Sección II, alineado al código de src/.
+' Renderizar con PlantUML y exportar como uml-clases.png para el documento de entrega.
 
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 
-title Sistema de Control de Acceso — Patrón Singleton (estructura actual)
+title Sistema de Control de Acceso - Patrón Singleton (estructura actual)
 
 class ControlAcceso {
   {static} -instancia : ControlAcceso
@@ -23,6 +22,9 @@ class ControlAcceso {
   +revocarPermiso(permiso : Permiso) : void
   +verificarAcceso(numEmpleado : int, numSector : int) : boolean
   +consultarHistorial() : List<RegistroAcceso>
+  +getEmpleados() : List<Empleado>
+  +getSectores() : List<Sector>
+  +getPermisos() : List<Permiso>
   +buscarEmpleado(identificacion : int) : Empleado
   +buscarSector(idS : int) : Sector
   -buscarPermiso(empleado : Empleado, sector : Sector) : Permiso
@@ -56,6 +58,7 @@ class Sector {
   +setIdS(idS : int) : void
   +setNombre(nombre : String) : void
   +setNivelRequerido(nivelRequerido : NivelAcceso) : void
+  +toString() : String
 }
 
 class Permiso {
@@ -73,9 +76,11 @@ class Permiso {
   +setActivo(activo : boolean) : void
   +setEspecial(especial : boolean) : void
   +revocar() : void
+  +toString() : String
 }
 
 class RegistroAcceso {
+  {static} -FORMATO_FECHA_HORA : DateTimeFormatter
   -empleado : Empleado
   -sector : Sector
   -fechaHora : LocalDateTime
@@ -96,15 +101,33 @@ class RegistroAcceso {
 }
 
 enum NivelAcceso {
-  NIVEL_1
-  NIVEL_2
-  NIVEL_3
-  NIVEL_4
-  NIVEL_5
+  NIVEL_1(1, "Acceso General")
+  NIVEL_2(2, "Acceso Interno")
+  NIVEL_3(3, "Acceso Restringido")
+  NIVEL_4(4, "Acceso Tecnico")
+  NIVEL_5(5, "Acceso Directivo")
+  -nivel : int
+  -descripcion : String
+  -NivelAcceso(nivel : int, descripcion : String)
+  +getNivel() : int
+  +getDescripcion() : String
+  +alcanzaA(nivelRequerido : NivelAcceso) : boolean
+  +toString() : String
 }
 
 class Main {
-  {static} -funcionRegistrarEmpleado(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} -leerEntero(entradaDatos : Scanner, mensaje : String) : int
+  {static} -leerNombre(entradaDatos : Scanner, mensaje : String) : String
+  {static} -leerNombreSector(entradaDatos : Scanner, mensaje : String) : String
+  {static} -leerNivelAcceso(entradaDatos : Scanner) : NivelAcceso
+  {static} +funcionRegistrarEmpleado(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} +funcionRegistrarSector(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} +funcionListarEmpleados(control : ControlAcceso) : void
+  {static} +funcionListarSectores(control : ControlAcceso) : void
+  {static} +funcionConcederPermiso(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} +funcionRevocarPermiso(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} +funcionVerificarAcceso(entradaDatos : Scanner, control : ControlAcceso) : void
+  {static} +funcionConsultarHistorial(control : ControlAcceso) : void
   {static} +main(args : String[]) : void
 }
 
@@ -112,12 +135,13 @@ ControlAcceso "1" o-- "*" Empleado : administra
 ControlAcceso "1" o-- "*" Sector : administra
 ControlAcceso "1" o-- "*" Permiso : concede y revoca
 ControlAcceso "1" o-- "*" RegistroAcceso : conserva
+ControlAcceso ..> NivelAcceso : consulta y asigna
 Permiso --> Empleado
 Permiso --> Sector
 RegistroAcceso --> Empleado
 RegistroAcceso --> Sector
 Empleado --> NivelAcceso
 Sector --> NivelAcceso
-Main ..> ControlAcceso : usa
+Main ..> ControlAcceso : usa el Singleton
 
 @enduml

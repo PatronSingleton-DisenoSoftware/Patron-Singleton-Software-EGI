@@ -3,6 +3,43 @@ import java.util.Scanner;
 
 public class Main {
 
+    // Lee un entero como línea completa para poder rechazar entradas mezcladas o inválidas.
+    private static int leerEntero(Scanner entradaDatos, String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            try {
+                return Integer.parseInt(entrada);
+            } catch (NumberFormatException error) {
+                System.out.println("El tipo de dato no coincide. Ingrese un numero entero.");
+            }
+        }
+    }
+
+    // Los nombres aceptan letras Unicode, espacios, guiones y apostrofes.
+    private static String leerNombre(Scanner entradaDatos, String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            if (entrada.matches("(?U)[\\p{L}]+(?:[ '\\-][\\p{L}]+)*")) {
+                return entrada;
+            }
+            System.out.println("El tipo de dato no coincide. Ingrese un nombre con letras.");
+        }
+    }
+
+    // El nombre del sector puede incluir numeros, por ejemplo "Piso 2", pero debe tener letras.
+    private static String leerNombreSector(Scanner entradaDatos, String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            if (!entrada.isEmpty() && entrada.matches("(?s).*\\p{L}.*")) {
+                return entrada;
+            }
+            System.out.println("El tipo de dato no coincide. Ingrese un texto con al menos una letra.");
+        }
+    }
+
     // Metodo auxiliar para leer y validar un NivelAcceso por consola
     private static NivelAcceso leerNivelAcceso(Scanner entradaDatos) {
         System.out.println("Nivel 1 - Acceso General");
@@ -13,9 +50,7 @@ public class Main {
 
         int nivel;
         do {
-            System.out.print("Seleccione nivel (1 a 5): ");
-            nivel = entradaDatos.nextInt();
-            entradaDatos.nextLine(); // limpia el salto de linea
+            nivel = leerEntero(entradaDatos, "Seleccione nivel (1 a 5): ");
             if (nivel < 1 || nivel > 5) {
                 System.out.println("Nivel invalido. Debe ser un numero entre 1 y 5.");
             }
@@ -27,16 +62,10 @@ public class Main {
     // 1 - Registrar empleado
     public static void funcionRegistrarEmpleado(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Empleado ---");
-        System.out.print("Identificacion (ID numerico): ");
-        int identificacion = entradaDatos.nextInt();
-        System.out.print("DNI: ");
-        int dni = entradaDatos.nextInt();
-        entradaDatos.nextLine(); // limpia el salto pendiente
-
-        System.out.print("Nombre: ");
-        String nombre = entradaDatos.nextLine();
-        System.out.print("Apellido: ");
-        String apellido = entradaDatos.nextLine();
+        int identificacion = leerEntero(entradaDatos, "Identificacion (ID numerico): ");
+        int dni = leerEntero(entradaDatos, "DNI: ");
+        String nombre = leerNombre(entradaDatos, "Nombre: ");
+        String apellido = leerNombre(entradaDatos, "Apellido: ");
 
         NivelAcceso nivelAcceso = leerNivelAcceso(entradaDatos);
 
@@ -47,12 +76,8 @@ public class Main {
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
-        System.out.print("ID del Sector: ");
-        int idS = entradaDatos.nextInt();
-        entradaDatos.nextLine();
-
-        System.out.print("Nombre del Sector: ");
-        String nombre = entradaDatos.nextLine();
+        int idS = leerEntero(entradaDatos, "ID del Sector: ");
+        String nombre = leerNombreSector(entradaDatos, "Nombre del Sector: ");
 
         System.out.println("Nivel minimo requerido para ingresar al sector:");
         NivelAcceso nivelRequerido = leerNivelAcceso(entradaDatos);
@@ -90,11 +115,8 @@ public class Main {
     // 5 - Conceder permiso especial
     public static void funcionConcederPermiso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Conceder Permiso Especial ---");
-        System.out.print("ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
 
         Empleado emp = control.buscarEmpleado(idEmpleado);
         Sector sec = control.buscarSector(idSector);
@@ -115,11 +137,8 @@ public class Main {
     // 6 - Revocar permiso
     public static void funcionRevocarPermiso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Revocar Permiso ---");
-        System.out.print("ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
 
         Empleado emp = control.buscarEmpleado(idEmpleado);
         Sector sec = control.buscarSector(idSector);
@@ -129,6 +148,7 @@ public class Main {
             return;
         }
 
+
         Permiso permiso = new Permiso(emp, sec, true);
         control.revocarPermiso(permiso);
     }
@@ -136,11 +156,8 @@ public class Main {
     // 7 - Verificar acceso
     public static void funcionVerificarAcceso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Punto de Acceso (Lector de Credencial) ---");
-        System.out.print("Ingrese ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("Ingrese ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "Ingrese ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "Ingrese ID del Sector: ");
 
         boolean autorizado = control.verificarAcceso(idEmpleado, idSector);
         if (autorizado) {
@@ -162,63 +179,6 @@ public class Main {
         }
     }
 
-    // 9 - Demostracion automatica del patron Singleton y reglas de negocio
-    public static void funcionDemostracionAutomatica(ControlAcceso control) {
-        System.out.println("\n========================================================");
-        System.out.println("         DEMOSTRACION AUTOMATICA DEL SISTEMA            ");
-        System.out.println("========================================================");
-
-        // CP-01 y CP-02: Demostracion de unicidad de instancia
-        System.out.println("\n[1] Verificando unicidad del Singleton:");
-        ControlAcceso puerta1 = ControlAcceso.getInstance();
-        ControlAcceso puerta2 = ControlAcceso.getInstance();
-        System.out.println("    Puerta 1 referencia: " + puerta1);
-        System.out.println("    Puerta 2 referencia: " + puerta2);
-        System.out.println("    ¿Son la misma instancia (puerta1 == puerta2)? " + (puerta1 == puerta2));
-
-        // Registro de datos de prueba
-        System.out.println("\n[2] Registrando sectores y empleados de prueba:");
-        Sector recepcion = new Sector(10, "Recepcion", NivelAcceso.NIVEL_1);
-        Sector servidores = new Sector(20, "Sala de Servidores", NivelAcceso.NIVEL_4);
-        control.registrarSector(recepcion);
-        control.registrarSector(servidores);
-
-        Empleado ana = new Empleado(1, 40111222, "Ana", "Gomez", NivelAcceso.NIVEL_2);
-        Empleado carlos = new Empleado(2, 35333444, "Carlos", "Lopez", NivelAcceso.NIVEL_4);
-        control.registrarEmpleado(ana);
-        control.registrarEmpleado(carlos);
-
-        // Verificaciones por nivel
-        System.out.println("\n[3] Prueba de acceso por nivel acumulativo:");
-        System.out.println("    • Ana (NIVEL_2) intenta entrar a Recepcion (NIVEL_1):");
-        control.verificarAcceso(1, 10);
-
-        System.out.println("    • Ana (NIVEL_2) intenta entrar a Sala de Servidores (NIVEL_4):");
-        control.verificarAcceso(1, 20);
-
-        System.out.println("    • Carlos (NIVEL_4) intenta entrar a Sala de Servidores (NIVEL_4):");
-        control.verificarAcceso(2, 20);
-
-        // Permiso especial y revocacion
-        System.out.println("\n[4] Prueba de permiso especial y revocacion:");
-        System.out.println("    • Concediendo permiso especial a Ana para Sala de Servidores...");
-        control.concederPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana intenta entrar nuevamente a Sala de Servidores:");
-        control.verificarAcceso(1, 20);
-
-        System.out.println("    • Revocando permiso especial de Ana...");
-        control.revocarPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana intenta entrar tras la revocacion:");
-        control.verificarAcceso(1, 20);
-
-        // Historial centralizado
-        System.out.println("\n[5] Auditoria del historial centralizado:");
-        for (RegistroAcceso reg : control.consultarHistorial()) {
-            System.out.println("    " + reg);
-        }
-        System.out.println("========================================================\n");
-    }
-
     public static void main(String[] args) {
         Scanner entradaDatos = new Scanner(System.in);
         ControlAcceso control = ControlAcceso.getInstance();
@@ -234,19 +194,8 @@ public class Main {
             System.out.println("6 - Revocar permiso especial");
             System.out.println("7 - Simular punto de acceso (verificar acceso)");
             System.out.println("8 - Consultar historial de accesos");
-            System.out.println("9 - Ejecutar demostracion automatica completa");
             System.out.println("0 - Salir");
-            System.out.print("Seleccione una opcion: ");
-
-            int opcion = -1;
-            if (entradaDatos.hasNextInt()) {
-                opcion = entradaDatos.nextInt();
-                entradaDatos.nextLine(); // limpia el salto
-            } else {
-                entradaDatos.nextLine(); // descarta entrada no numerica
-                System.out.println("Por favor ingrese un numero valido.");
-                continue;
-            }
+            int opcion = leerEntero(entradaDatos, "Seleccione una opcion: ");
 
             switch (opcion) {
                 case 1:
@@ -272,9 +221,6 @@ public class Main {
                     break;
                 case 8:
                     funcionConsultarHistorial(control);
-                    break;
-                case 9:
-                    funcionDemostracionAutomatica(control);
                     break;
                 case 0:
                     salir = true;
