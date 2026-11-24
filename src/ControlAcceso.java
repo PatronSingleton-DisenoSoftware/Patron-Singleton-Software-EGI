@@ -40,7 +40,7 @@ public class ControlAcceso {
         empleados.add(empleado);
         System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
     }
-    
+
     public void registrarSector(Sector sector){
         // Guarda: no se aceptan datos vacios
         if (sector == null){
@@ -68,7 +68,7 @@ public class ControlAcceso {
             System.out.println("No existe un empleado con identificacion " + empleado.getIdentificacion());
             return;
         }
-        registrado.setNivelAcesso(nivelAcceso);
+        registrado.setNivelAcceso(nivelAcceso);
         System.out.println("Nivel de " + registrado.getNombre() + " actualizado a " + nivelAcceso);
     }
 
@@ -127,7 +127,7 @@ public class ControlAcceso {
         System.out.println("Permiso revocado a " + permiso.getEmpleado().getNombre()
                 + " en " + permiso.getSector().getNombre());
     }
-    
+
     public boolean verificarAcceso(int numEmpleado, int numSector){
         Empleado empleado = buscarEmpleado(numEmpleado);
         Sector sector = buscarSector(numSector);
@@ -147,7 +147,7 @@ public class ControlAcceso {
         String motivo = null;
 
         // 2. Verificar jerarquía de niveles (RN-01)
-        if (empleado.getNivelAcesso().alcanzaA(sector.getNivelRequerido())) {
+        if (empleado.getNivelAcceso().alcanzaA(sector.getNivelRequerido())) {
             autorizado = true;
             motivo = "Acceso autorizado por nivel";
         }

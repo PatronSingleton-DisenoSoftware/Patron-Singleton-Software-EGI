@@ -29,35 +29,65 @@ public class Main {
         System.out.println("\n--- Alta de Empleado ---");
         System.out.print("Identificacion (ID numerico): ");
         int identificacion = entradaDatos.nextInt();
+        entradaDatos.nextLine();
+
         System.out.print("DNI: ");
-        int dni = entradaDatos.nextInt();
-        entradaDatos.nextLine(); // limpia el salto pendiente
+        String dniTexto = entradaDatos.nextLine().trim();
+
+        boolean soloNumeros = !dniTexto.equals("");
+        for (int i = 0; i < dniTexto.length(); i++) {
+            if (!Character.isDigit(dniTexto.charAt(i))) {
+                soloNumeros = false;
+                break;
+            }
+        }
+
+        if (!soloNumeros || dniTexto.length() != 8) {
+            System.out.println("DNI invalido.");
+            return;
+        }
+
+        int dni = Integer.parseInt(dniTexto);
 
         System.out.print("Nombre: ");
         String nombre = entradaDatos.nextLine();
+
         System.out.print("Apellido: ");
         String apellido = entradaDatos.nextLine();
 
+        boolean nombreValido = (nombre != null && !nombre.trim().equals(""));
+        boolean apellidoValido = (apellido != null && !apellido.trim().equals(""));
+
+        if (!nombreValido || !apellidoValido) {
+            System.out.println("No se puede registrar este empleado porque no tiene nombre o apellido.");
+            return;
+        }
+
         NivelAcceso nivelAcceso = leerNivelAcceso(entradaDatos);
 
-        Empleado empleado = new Empleado(identificacion, dni, nombre, apellido, nivelAcceso);
-        control.registrarEmpleado(empleado);
+        Empleado empleado = new Empleado(identificacion, dni, nombre.trim(), apellido.trim(), nivelAcceso);
+        if (empleado.isRegistroValido()) {
+            control.registrarEmpleado(empleado);
+        }
     }
 
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
         System.out.print("ID del Sector: ");
-        int idS = entradaDatos.nextInt();
+        int idSector = entradaDatos.nextInt();
         entradaDatos.nextLine();
 
         System.out.print("Nombre del Sector: ");
-        String nombre = entradaDatos.nextLine();
+        String nombreSector = entradaDatos.nextLine().trim();
 
-        System.out.println("Nivel minimo requerido para ingresar al sector:");
-        NivelAcceso nivelRequerido = leerNivelAcceso(entradaDatos);
+        if (nombreSector.equals("")) {
+            System.out.println("Error: El nombre del sector no puede estar vacio.");
+            return;
+        }
 
-        Sector sector = new Sector(idS, nombre, nivelRequerido);
+        NivelAcceso nivelMinimo = leerNivelAcceso(entradaDatos);
+        Sector sector = new Sector(idSector, nombreSector, nivelMinimo);
         control.registrarSector(sector);
     }
 
