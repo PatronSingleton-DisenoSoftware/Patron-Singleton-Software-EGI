@@ -71,19 +71,19 @@ public class RegistroAcceso {
     @Override
     public String toString() {
         // Si el intento vino con datos inexistentes, se muestra el texto en vez de un null
-        String nombreEmpleado = (empleado == null)
+        String nombreEmpleado = (getEmpleado() == null)
                 ? "Empleado no registrado"
-                : empleado.getNombre() + " " + empleado.getApellido()
-                        + " (ID " + empleado.getIdentificacion() + ")";
-        String nombreSector = (sector == null)
+                : getEmpleado().getNombre() + " " + getEmpleado().getApellido()
+                        + " (ID " + getEmpleado().getIdentificacion() + ")";
+        String nombreSector = (getSector() == null)
                 ? "Sector inexistente"
-                : sector.getNombre() + " (ID " + sector.getIdS() + ")";
-        String resultado = autorizado ? "AUTORIZADO" : "DENEGADO";
+                : getSector().getNombre() + " (ID " + getSector().getIdS() + ")";
+        String resultado = isAutorizado() ? "AUTORIZADO" : "DENEGADO";
 
-        return fechaHora.format(FORMATO_FECHA_HORA) + " | "
+        return getFechaHora().format(FORMATO_FECHA_HORA) + " | "
                 + nombreEmpleado + " | "
                 + nombreSector + " | "
                 + resultado + " | "
-                + motivo;
+                + getMotivo();
     }
 }

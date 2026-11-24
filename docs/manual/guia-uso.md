@@ -2,16 +2,15 @@
 
 ## 1. Qué hace el programa hoy
 
-El estado actual es un **esqueleto**. El programa:
+El estado actual es un **esqueleto funcional**. El programa:
 
 - compila correctamente;
 - permite obtener la instancia única de `ControlAcceso` mediante `getInstance()`;
 - permite crear objetos `Empleado` con sus cinco datos (incluido el nivel);
-- tiene las clases `Sector`, `Permiso`, `RegistroAcceso` y el enum `NivelAcceso`, pero
-  sin lógica de negocio.
+- tiene las clases `Sector`, `Permiso`, `RegistroAcceso` y el enum `NivelAcceso`, con su lógica y atributos encapsulados;
+- implementa la verificación de accesos y la auditoría de intentos centralizada.
 
-Todavía **no** da de alta empleados en el sistema, no registra accesos y su `main` no
-imprime nada. Las secciones siguientes describen el uso previsto y marcan qué falta.
+El punto de entrada `src/Main.java` contiene un menú interactivo por consola para registrar empleados en el gestor Singleton.
 
 ## 2. Uso del Singleton
 
@@ -35,16 +34,16 @@ System.out.println(empleado.getIdentificacion()); // 1
 System.out.println(empleado.getNivelAcesso());    // NIVEL_2
 ```
 
-## 4. Flujo previsto (pendiente de implementación)
+## 4. Flujo previsto (implementación)
 
 | Paso | Acción | Estado |
 |------|--------|--------|
 | 1 | Obtener `ControlAcceso.getInstance()` | ✅ disponible |
 | 2 | Crear el `Empleado` | ✅ disponible |
-| 3 | Darlo de alta en el gestor | ⚠️ `registrarEmpleado()` existe, sin lógica |
-| 4 | Definir `Sector` y `Permiso` | ⚠️ clases creadas, sin setters ni constructores con datos |
-| 5 | Registrar un acceso | ❌ falta el método; `RegistroAcceso` no asigna fecha |
-| 6 | Consultar los registros | ⚠️ `consultarHistorial()` existe, devuelve `null` |
+| 3 | Darlo de alta en el gestor | ✅ `registrarEmpleado()` implementado |
+| 4 | Definir `Sector` y `Permiso` | ✅ constructores, getters y setters disponibles |
+| 5 | Registrar un acceso | ✅ `verificarAcceso()` valida y genera `RegistroAcceso` con fecha/hora actual |
+| 6 | Consultar los registros | ✅ `consultarHistorial()` devuelve copia de `List<RegistroAcceso>` |
 
 ## 5. Ejecutar desde la terminal
 
@@ -53,7 +52,7 @@ javac -d out (Get-ChildItem src\*.java).FullName
 java -cp out Main
 ```
 
-Hoy la ejecución termina sin imprimir nada, porque `main` está vacío.
+Permite registrar empleados interactivamente desde la consola.
 
 ## 6. Errores frecuentes
 

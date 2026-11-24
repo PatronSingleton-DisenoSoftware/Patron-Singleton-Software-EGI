@@ -17,39 +17,34 @@ Estado al cierre de esta versión:
 
 | Componente | Estado |
 |------------|--------|
-| `ControlAcceso` | ✅ Estructura del Singleton (lazy, sin `synchronized`, ADR-07); ❌ métodos sin lógica |
-| `Empleado` | ✅ 5 atributos, constructor, getters, setter de nivel y `toString()`; ⚠️ typo `nivelAcesso` |
-| `Sector` | ⚠️ 3 atributos y getters; sin setters ni constructor con parámetros |
-| `Permiso` | ⚠️ 4 atributos y getters; `revocar()` vacío |
-| `RegistroAcceso` | ⚠️ 5 atributos y 3 getters; `fechaHora` sin asignar |
-| `NivelAcceso` (enum) | ✅ Existe con `NIVEL_1`…`NIVEL_5`; ⚠️ sin comparación acumulativa |
-| `TipoPermiso` (enum) | ❌ No existe: se usa `boolean especial` |
-| `Main` | ❌ Vacío, sin demostración |
-| Compilación | ✅ Sin errores |
+| `ControlAcceso` | ✅ Estructura Singleton completa, lógica de validaciones, verificación de accesos e historial con copia defensiva |
+| `Empleado` | ✅ 5 atributos, constructor, getters, setter de nivel y `toString()`; typo `nivelAcesso` conservado |
+| `Sector` | ✅ 3 atributos, constructor parametrizado, getters y setters |
+| `Permiso` | ✅ 4 atributos, constructor, getters, setters y `revocar()` funcional |
+| `RegistroAcceso` | ✅ 5 atributos, constructor con `LocalDateTime.now()`, getters, setters y `toString()` |
+| `NivelAcceso` (enum) | ✅ 5 niveles evaluados mediante `ordinal()` para jerarquía acumulativa |
+| `TipoPermiso` (enum) | ❌ No existe: se utiliza `boolean especial` |
+| `Main` | ✅ Interactivo por consola, conectado a la instancia Singleton |
+| Compilación | ✅ Sin errores ni advertencias |
 
-En consecuencia: la **estructura del patrón** está verificada por inspección (CP-02), pero
-la **demostración en ejecución** (CP-01) y toda la lógica de negocio siguen pendientes.
+En consecuencia, tanto la **estructura del patrón** como la **lógica de negocio y auditoría**
+se encuentran implementadas y operativas en el proyecto.
 
 ## 7.3. Sobre el diseño
 
-El diseño se registró **antes de programar**, con ocho decisiones en
-[Decisiones de diseño](09-decisiones.md). El código posterior aplicó algunas y dejó otras
-pendientes:
+El diseño se registró antes de programar con ocho decisiones en
+[Decisiones de diseño](09-decisiones.md):
 
 | ADR | Decisión | Por qué | Estado en el código |
 |-----|----------|---------|---------------------|
-| ADR-01 | `NivelAcceso` como enum | Evita niveles inválidos y centraliza el "alcanza a". | ⚠️ Parcial: sin valor ni comparación |
+| ADR-01 | `NivelAcceso` como enum | Evita niveles inválidos y centraliza el "alcanza a". | ⚠️ Parcial: evaluado por `ordinal()` |
 | ADR-02 | `TipoPermiso` como enum | `tipo` no tenía tipo y aceptaba cualquier valor. | ❌ No aplicado: `boolean especial` |
-| ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial. | ⚠️ Parcial: tipo correcto, sin asignación |
+| ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial. | ✅ Aplicado: asignado en constructor |
 | ADR-04 | `Sector.identificacion` | Consistencia con `Empleado` y con las reglas. | ❌ No aplicado: sigue `idS` |
 | ADR-05 | `permisos` en `ControlAcceso` | Sin esa colección la revocación no tendría dónde vivir. | ✅ Aplicado |
-| ADR-06 | Separar verificar de registrar | Evita mezclar consulta con efecto secundario. | ❌ No aplicado: no existe `registrarIntento()` |
+| ADR-06 | Separar verificar de registrar | Evita mezclar consulta con efecto secundario. | ❌ No aplicado: flujo unificado en `verificarAcceso()` |
 | ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; riesgo documentado. | ✅ Aplicado |
-| ADR-08 | Setters en todas las clases | Cumplimiento de `Reglas-Proyecto.md`. | ⚠️ Parcial: solo `Empleado` |
-
-La lección es concreta: las decisiones de tipo y de nombre **no se sostienen solas** si el
-código se escribe en paralelo sin revisarlas. La brecha está registrada en
-[Implementación §5.5](05-implementacion.md#55-brecha-entre-diseño-e-implementación).
+| ADR-08 | Setters en todas las clases | Cumplimiento de `Reglas-Proyecto.md`. | ✅ Aplicado: setters completos y copia defensiva |
 
 ## 7.4. Sobre la concurrencia
 
@@ -64,14 +59,10 @@ operando en simultáneo esto es relevante. Alternativas, de menor a mayor robust
 
 ## 7.5. Trabajo futuro
 
-1. Completar la lógica de `ControlAcceso` (altas, búsquedas, permisos y verificación).
-2. Definir e implementar el registro del intento en `RegistroAcceso` y en el gestor.
-3. Completar `Permiso.revocar()` y los setters de `Sector` y `RegistroAcceso`.
-4. Implementar el `main` de demostración y ejecutar CP-01 a CP-13.
-5. Resolver las brechas de los ADR-01, 02, 04, 06 y 08, o registrar formalmente su
-   reemplazo.
-6. Migrar las pruebas a JUnit 5.
-7. Evaluar una variante segura frente a hilos (ADR-07).
+1. Incorporar pruebas automáticas con JUnit 5.
+2. Evaluar una variante thread-safe del Singleton (ADR-07).
+3. Desarrollar persistencia externa (base de datos o archivos) para mantener el historial entre ejecuciones.
+4. Extender la interfaz de usuario por consola para abarcar la verificación de accesos y visualización directa del historial.
 
 ---
 

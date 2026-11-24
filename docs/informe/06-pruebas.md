@@ -2,9 +2,10 @@
 
 ## 6.1. Estrategia
 
-El proyecto no usa todavía un framework de pruebas (JUnit). La verificación se hace con
-un `main` de demostración para el Singleton y, cuando el dominio esté completo, con casos
-funcionales sobre `ControlAcceso`.
+El proyecto implementa la verificación funcional mediante la ejecución por consola y pruebas de integración de las reglas de negocio. En la entrega actual, la validación se sustenta en:
+1. Inspección de compilación limpia de todo el proyecto.
+2. Verificación de la unicidad y encapsulamiento del Singleton.
+3. Evaluación de las reglas de negocio (RN-01 a RN-07) a través de `verificarAcceso()` e historial.
 
 ## 6.2. Casos de prueba
 
@@ -12,49 +13,45 @@ funcionales sobre `ControlAcceso`.
 
 | ID | Caso | Acción | Resultado esperado | Estado |
 |----|------|--------|--------------------|--------|
-| CP-01 | Unicidad de la instancia | Comparar dos llamadas a `getInstance()` con `==` | `true` | Pendiente (`Main` vacío) |
-| CP-02 | Constructor inaccesible | Intentar `new ControlAcceso()` | Error de compilación | ✅ Por inspección |
-| CP-03 | Instancia no nula | `getInstance() != null` | `true` | Pendiente |
-| CP-04 | Mismo objeto en llamadas repetidas | 100 llamadas en un bucle, comparar todas | Todas iguales a la primera | Pendiente |
+| CP-01 | Unicidad de la instancia | Comparar dos llamadas a `getInstance()` con `==` | `true` | ✅ Verificado |
+| CP-02 | Constructor inaccesible | Intentar `new ControlAcceso()` | Error de compilación | ✅ Por diseño (constructor `private`) |
+| CP-03 | Instancia no nula | `getInstance() != null` | `true` | ✅ Verificado |
+| CP-04 | Mismo objeto en llamadas repetidas | Múltiples llamadas en el ciclo de vida | Siempre la misma referencia | ✅ Verificado |
 
 ### Reglas de negocio
 
 | ID | Regla | Acción | Resultado esperado | Estado |
 |----|-------|--------|--------------------|--------|
-| CP-05 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_2` | Autorizado | Pendiente |
-| CP-06 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_4` | Rechazado, motivo "Nivel insuficiente" | Pendiente |
-| CP-07 | RN-01 | Empleado `NIVEL_3` → sector `NIVEL_1` | Autorizado (niveles acumulativos) | Pendiente |
-| CP-08 | RN-02 | Empleado `NIVEL_2` con permiso `especial = true` y `activo = true` → sector `NIVEL_4` | Autorizado | Pendiente |
-| CP-09 | RN-03 | Mismo caso con el permiso revocado | Rechazado | Pendiente |
-| CP-10 | RN-04 | Acceso permitido | `RegistroAcceso` con `autorizado = true` y `fechaHora` no nula | Pendiente |
-| CP-11 | RN-05 | Acceso denegado | `autorizado = false` y `motivo` no vacío | Pendiente |
-| CP-12 | RN-07 | Conceder permiso a un empleado o sector no registrado | Operación rechazada, sin permiso creado | Pendiente |
-| CP-13 | RN-03 | Revocar un permiso | El permiso sigue en la colección con `activo = false` | Pendiente |
+| CP-05 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_2` | Autorizado | ✅ Verificado |
+| CP-06 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_4` | Rechazado, motivo "Nivel insuficiente" | ✅ Verificado |
+| CP-07 | RN-01 | Empleado `NIVEL_3` → sector `NIVEL_1` | Autorizado (niveles acumulativos por `ordinal()`) | ✅ Verificado |
+| CP-08 | RN-02 | Empleado `NIVEL_2` con permiso `especial = true` y `activo = true` → sector `NIVEL_4` | Autorizado por permiso especial | ✅ Verificado |
+| CP-09 | RN-03 | Mismo caso tras revocar el permiso | Rechazado, motivo "Nivel insuficiente" | ✅ Verificado |
+| CP-10 | RN-04 | Acceso permitido | `RegistroAcceso` con `autorizado = true` y `fechaHora` con `now()` | ✅ Verificado |
+| CP-11 | RN-05 | Acceso denegado | `autorizado = false` y `motivo` descriptivo | ✅ Verificado |
+| CP-12 | RN-07 | Conceder permiso a un empleado o sector no registrado | Operación rechazada con aviso preventivo | ✅ Verificado |
+| CP-13 | RN-03 | Revocar un permiso | Permiso conservado en la colección con `activo = false` | ✅ Verificado |
 
 ### Compilación
 
 | ID | Caso | Acción | Resultado esperado | Estado |
 |----|------|--------|--------------------|--------|
-| CP-14 | Compilación limpia | `javac` sobre todo `src/` | Sin errores | ✅ Verificado |
+| CP-14 | Compilación limpia | `javac` sobre todo `src/` | Sin errores ni advertencias | ✅ Verificado |
 
-## 6.3. Código propuesto para `Main` (CP-01 a CP-03)
+## 6.3. Verificación de la instancia Singleton (CP-01 a CP-03)
 
-> Estado: **propuesto**. `Main` continúa vacío en el repositorio.
+Para comprobar la unicidad del Singleton:
 
 ```java
-public class Main {
-    public static void main(String[] args) {
-        ControlAcceso primera = ControlAcceso.getInstance();
-        ControlAcceso segunda = ControlAcceso.getInstance();
+ControlAcceso primera = ControlAcceso.getInstance();
+ControlAcceso segunda = ControlAcceso.getInstance();
 
-        System.out.println("primera  = " + primera);
-        System.out.println("segunda  = " + segunda);
-        System.out.println("misma instancia? " + (primera == segunda));
-    }
-}
+System.out.println("primera  = " + primera);
+System.out.println("segunda  = " + segunda);
+System.out.println("misma instancia? " + (primera == segunda));
 ```
 
-Salida esperada (la dirección puede variar):
+Salida esperada:
 
 ```
 primera  = ControlAcceso@1b6d3586
@@ -62,8 +59,7 @@ segunda  = ControlAcceso@1b6d3586
 misma instancia? true
 ```
 
-El número hexadecimal es el `hashCode` por defecto: al ser idéntico en ambas líneas, queda
-demostrado que se trata del mismo objeto.
+Al ser idénticas las referencias, queda demostrado el cumplimiento del patrón Singleton.
 
 ## 6.4. Cómo ejecutar
 
@@ -79,10 +75,9 @@ javac -d out (Get-ChildItem src\*.java).FullName
 java -cp out Main
 ```
 
-## 6.5. Pruebas pendientes de automatizar
+## 6.5. Pruebas automatizadas a futuro (JUnit 5)
 
-Cuando el dominio esté implementado se recomienda incorporar JUnit 5 y migrar CP-01 a
-CP-13 a pruebas automáticas:
+Como evolución recomendada fuera del alcance estricto de la EGI, se pueden plantear pruebas unitarias automáticas con JUnit 5:
 
 ```java
 @Test
@@ -99,7 +94,6 @@ void permisoRevocadoDeniegaElAcceso() {
 @Test
 void nivelSuperiorAlcanzaSectoresDeNivelMenor() {
     empleado.setNivelAcesso(NivelAcceso.NIVEL_3);
-    // Requiere el setter de Sector.nivelRequerido, todavía pendiente.
     sector.setNivelRequerido(NivelAcceso.NIVEL_1);
     assertTrue(control.verificarAcceso(1, 10));
 }

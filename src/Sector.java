@@ -33,4 +33,9 @@ public class Sector {
     public void setNivelRequerido(NivelAcceso nivelRequerido) {
         this.nivelRequerido = nivelRequerido;
     }
+
+    @Override
+    public String toString() {
+        return "Sector [ID: " + idS + ", Nombre: " + nombre + ", Nivel Requerido: " + nivelRequerido + "]";
+    }
 }

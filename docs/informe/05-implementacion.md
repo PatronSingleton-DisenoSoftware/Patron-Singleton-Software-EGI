@@ -1,20 +1,20 @@
 # 5. Implementación
 
 > Esta sección describe el **código real** de `src/` en la rama `main`. La estructura de
-> las siete clases y del Singleton está creada; la **lógica de negocio todavía no está
-> implementada** y se marca como `Pendiente`. La brecha con el diseño propuesto está
+> las clases y del Singleton está completa, con su lógica de negocio, validaciones y
+> auditoría centralizada implementadas. La evolución frente al diseño original está
 > resumida en [§5.5](#55-brecha-entre-diseño-e-implementación).
 
 ## 5.1. Estructura del código
 
 ```
 src/
-├── ControlAcceso.java    ← Singleton: atributos, constructor, getInstance() y firmas
+├── ControlAcceso.java    ← Singleton: listas, constructor, getInstance(), lógica de negocio e historial
 ├── Empleado.java         ← 5 atributos, constructor, getters, setters y toString()
-├── Main.java             ← clase de prueba, vacía
-├── Permiso.java          ← 4 atributos, getters y revocar() vacío
-├── RegistroAcceso.java   ← 5 atributos y 3 getters
-├── Sector.java           ← 3 atributos y getters (sin setters)
+├── Main.java             ← clase de prueba y menú interactivo por consola
+├── Permiso.java          ← 4 atributos, constructor con datos, getters, setters y revocar()
+├── RegistroAcceso.java   ← 5 atributos, constructor con LocalDateTime.now(), getters, setters y toString()
+├── Sector.java           ← 3 atributos, constructor con datos, getters y setters
 ├── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
 └── (TipoPermiso.java no existe)
 ```
@@ -24,7 +24,7 @@ como exige [`Reglas-Proyecto.md`](../../Reglas-Proyecto.md).
 
 ## 5.2. El Singleton: `ControlAcceso`
 
-Código actual (`src/ControlAcceso.java`):
+Estructura central (`src/ControlAcceso.java`):
 
 ```java
 import java.util.ArrayList;
@@ -46,8 +46,6 @@ public class ControlAcceso {
         this.registros = new ArrayList<>();
     }
 
-    // Getters y Setters
-
     // Metodo de acceso unico
     public static ControlAcceso getInstance() {
         if (instancia == null) {
@@ -56,37 +54,28 @@ public class ControlAcceso {
         return instancia;
     }
 
-    // Metodos publicos o privados
-    public void registrarEmpleado(Empleado empleado) {
-        // Logica
+    public void registrarEmpleado(Empleado empleado) { /* ... */ }
+    public void registrarSector(Sector sector) { /* ... */ }
+    public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso) { /* ... */ }
+    public void concederPermiso(Permiso permiso) { /* ... */ }
+    public void revocarPermiso(Permiso permiso) { /* ... */ }
+    public boolean verificarAcceso(int numEmpleado, int numSector) { /* ... */ }
+
+    // Devuelve el historial de intentos
+    public List<RegistroAcceso> consultarHistorial() {
+        if (this.registros.isEmpty()) {
+            System.out.println("El historial esta vacio: no hay intentos de acceso registrados");
+            return new ArrayList<>();
+        }
+        // Se devuelve una copia para que el cliente no modifique la lista interna
+        return new ArrayList<>(this.registros);
     }
 
-    public void registrarSector(Sector sector) {
-        // Logica
-    }
-
-    public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso) {
-        // Logica
-    }
-
-    public void concederPermiso(Permiso permiso) {
-        // Logica
-    }
-
-    public void revocarPermiso(Permiso permiso) {
-        // Logica
-    }
-
-    public boolean verificarAcceso(int numEmpleado, int numSector) {
-        // Retorno de ejemplo para que no marque el error
-        boolean ejemplo = false;
-        return ejemplo;
-    }
-
-    public RegistroAcceso consultarHistorial() {
-        // Esta en null a modo de ejemplo para que no de error
-        return null;
-    }
+    // Metodos auxiliares
+    public Empleado buscarEmpleado(int identificacion) { /* ... */ }
+    public Sector buscarSector(int idS) { /* ... */ }
+    private Permiso buscarPermiso(Empleado empleado, Sector sector) { /* ... */ }
+    private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) { /* ... */ }
 }
 ```
 
@@ -108,14 +97,12 @@ public class ControlAcceso {
 
 Consecuencia: `ControlAcceso.getInstance() == ControlAcceso.getInstance()` es `true`.
 
-### Qué falta en esta clase
+### Capacidades implementadas en esta clase
 
-- Cuerpo de `registrarEmpleado`, `registrarSector`, `asignarNivel`, `concederPermiso` y
-  `revocarPermiso` (`Pendiente`).
-- Búsquedas auxiliares por identificación (`Pendiente`).
-- `verificarAcceso(int, int)` con la comparación de niveles y permisos (`Pendiente`).
-- Un método que registre el intento (`Pendiente`).
-- `consultarHistorial()` que devuelva la colección de registros (`Pendiente`).
+- **Altas con validación:** `registrarEmpleado` y `registrarSector` verifican duplicados por identificación antes de agregar.
+- **Gestión de permisos:** `concederPermiso` valida existencia de empleado y sector (CP-12) y reactiva permisos previos si ya existían; `revocarPermiso` realiza baja lógica delegando en `Permiso.revocar()`.
+- **Verificación de accesos:** `verificarAcceso` evalúa jerarquía por `ordinal()` de `NivelAcceso` (RN-01), excepciones por permiso especial activo (RN-02) y genera automáticamente un `RegistroAcceso` (RN-04 y RN-05).
+- **Consulta segura de auditoría:** `consultarHistorial()` retorna `List<RegistroAcceso>` mediante una **copia defensiva** (`new ArrayList<>(this.registros)`), protegiendo la lista interna de modificaciones externas.
 
 ## 5.3. `Empleado`
 
@@ -138,37 +125,15 @@ public class Empleado {
         this.nivelAcesso = nivelAcceso;
     }
 
-    public int getDni() { return dni; }
     public int getIdentificacion() { return identificacion; }
-    public String getApellido() { return apellido; }
+    public int getDni() { return dni; }
     public String getNombre() { return nombre; }
+    public String getApellido() { return apellido; }
     public NivelAcceso getNivelAcesso() { return nivelAcesso; }
-
-    public void setNivelAcesso(NivelAcceso nivelAcesso) {
-        this.nivelAcesso = nivelAcesso;
-    }
-
-    @Override
-    public String toString() {
-        return "ID-Empleado " + getIdentificacion()
-                + "Nombre " + getNombre()
-                + "Apellido " + getApellido()
-                + "Nivel de Acceso " + getNivelAcesso();
-    }
+    public void setNivelAcesso(NivelAcceso nivelAcesso) { this.nivelAcesso = nivelAcesso; }
+    public String toString() { /* ... */ }
 }
 ```
-
-Observaciones:
-
-- Los cinco atributos son `private`, con nombres descriptivos en minúscula.
-- El constructor recibe los datos y los asigna con `this.` para desambiguar
-  parámetro/variable de instancia.
-- El atributo se llama **`nivelAcesso`** (con una «c» de más) y sus accesores son
-  `getNivelAcesso()` / `setNivelAcesso()`. Es un typo respecto de `nivelAcceso`; está
-  pendiente corregirlo o aceptarlo formalmente.
-- `toString()` no separa los campos con comas ni espacios finales; conviene ajustarlo
-  cuando se use en la salida de la demostración.
-- Tiene **getter y setter** del nivel, pero no setters para los demás atributos.
 
 ## 5.4. Las demás clases
 
@@ -180,17 +145,22 @@ public class Sector {
     private String nombre;
     private NivelAcceso nivelRequerido;
 
-    public Sector() {
+    public Sector(int idS, String nombre, NivelAcceso nivelRequerido) {
+        this.idS = idS;
+        this.nombre = nombre;
+        this.nivelRequerido = nivelRequerido;
     }
 
     public String getNombre() { return nombre; }
     public int getIdS() { return idS; }
     public NivelAcceso getNivelRequerido() { return nivelRequerido; }
+    public void setIdS(int idS) { this.idS = idS; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setNivelRequerido(NivelAcceso nivelRequerido) { this.nivelRequerido = nivelRequerido; }
 }
 ```
 
-Tiene getters pero **no setters** ni constructor con parámetros: hoy no hay forma de
-asignarle valores a un sector desde fuera de la clase.
+Dispone de constructor con parámetros, getters y setters para todos sus campos.
 
 ### `Permiso`
 
@@ -201,26 +171,30 @@ public class Permiso {
     private boolean activo;
     private boolean especial;
 
-    public Permiso() {
+    public Permiso(Empleado empleado, Sector sector, boolean especial) {
+        this.empleado = empleado;
+        this.sector = sector;
+        this.especial = especial;
+        this.activo = true;
     }
 
     public Empleado getEmpleado() { return empleado; }
     public Sector getSector() { return sector; }
     public boolean estaActivo() { return activo; }
     public boolean esEspecial() { return especial; }
-
-    public void revocar() {
-    }
+    public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
+    public void setSector(Sector sector) { this.sector = sector; }
+    public void setActivo(boolean activo) { this.activo = activo; }
+    public void setEspecial(boolean especial) { this.especial = especial; }
+    public void revocar() { this.activo = false; }
 }
 ```
 
-`revocar()` está declarado pero **vacío**: no cambia `activo`. Tampoco hay setters ni una
-forma de construir un permiso con datos.
+Implementa la baja lógica mediante `revocar()` (`activo = false`) y ofrece setters para reactivación o edición.
 
 ### `RegistroAcceso`
 
 ```java
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class RegistroAcceso {
@@ -230,17 +204,37 @@ public class RegistroAcceso {
     private boolean autorizado;
     private String motivo;
 
-    public RegistroAcceso() {
+    public RegistroAcceso(Empleado empleado, Sector sector, boolean autorizado, String motivo) {
+        this.empleado = empleado;
+        this.sector = sector;
+        this.autorizado = autorizado;
+        this.motivo = motivo;
+        this.fechaHora = LocalDateTime.now();
     }
 
+    public Empleado getEmpleado() { return empleado; }
+    public Sector getSector() { return sector; }
     public LocalDateTime getFechaHora() { return fechaHora; }
     public String getMotivo() { return motivo; }
     public boolean isAutorizado() { return autorizado; }
+    public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
+    public void setSector(Sector sector) { this.sector = sector; }
+    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
+    public void setAutorizado(boolean autorizado) { this.autorizado = autorizado; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
+
+    @Override
+    public String toString() {
+        String nombreEmpleado = (getEmpleado() != null) ? getEmpleado().getNombre() : "sin empleado";
+        String nombreSector = (getSector() != null) ? getSector().getNombre() : "sin sector";
+        String resultado = isAutorizado() ? "PERMITIDO" : "DENEGADO";
+        return "[" + getFechaHora() + "] " + nombreEmpleado + " -> " + nombreSector
+                + " | " + resultado + " | " + getMotivo();
+    }
 }
 ```
 
-El constructor no asigna `fechaHora`, no hay setters y no se exponen `getEmpleado()` ni
-`getSector()`. El `import java.time.LocalDate;` no se usa.
+Asigna la marca temporal mediante `LocalDateTime.now()` en su constructor, provee getters y setters, y dispone de `toString()` legible para inspección y consola.
 
 ### `NivelAcceso`
 
@@ -254,21 +248,11 @@ public enum NivelAcceso {
 }
 ```
 
-No guarda valores numéricos ni expone `getNivel()` o `alcanzaA()`. La comparación
-acumulativa se puede hacer con `ordinal()`, pero todavía no está implementada.
+La comparación acumulativa se realiza mediante `ordinal()`.
 
 ### `Main`
 
-```java
-public class Main {
-    public static void main(String[] args) {
-
-    }
-}
-```
-
-La clase de prueba existe pero **no demuestra nada todavía**. La versión mínima propuesta
-está en [Pruebas §6.3](06-pruebas.md#63-código-propuesto-para-main-cp-01-a-cp-03).
+`Main.java` implementa un menú interactivo por consola que permite dar de alta empleados con validación de nivel y registrarlos en la instancia única de `ControlAcceso`.
 
 ## 5.5. Brecha entre diseño e implementación
 
@@ -278,49 +262,35 @@ está en [Pruebas §6.3](06-pruebas.md#63-código-propuesto-para-main-cp-01-a-cp
 | Constructor privado | `private ControlAcceso()` | ✅ |
 | Método de acceso | `getInstance()` (el diseño decía `getInstancia()`) | ⚠️ Nombre distinto, estructura correcta |
 | Colecciones `empleados`, `sectores`, `permisos`, `registros` | `private List<...>` inicializadas en el constructor | ✅ |
-| Altas, niveles y permisos | Métodos declarados con `// Logica` | ❌ Sin cuerpo |
-| `verificarAcceso` | `verificarAcceso(int, int)` devuelve `false` | ❌ Sin lógica |
-| Registro del intento | No existe `registrarIntento` | ❌ |
-| Historial | `consultarHistorial()` devuelve `null` | ❌ |
+| Altas, niveles y permisos | Métodos implementados con validación | ✅ |
+| `verificarAcceso` | Evalúa nivel, permiso especial y genera registro | ✅ |
+| Registro del intento | Se genera automáticamente en `verificarAcceso` | ✅ |
+| Historial | `consultarHistorial()` devuelve `List<RegistroAcceso>` (copia defensiva) | ✅ |
 | `Empleado` | 5 atributos, constructor, getters, setters y `toString()` | ✅ |
-| Nombre `Empleado.nivelAcceso` | `nivelAcesso` (typo) | ⚠️ |
-| `Sector` | `idS`, getters, sin setters | ⚠️ Incompleto |
-| `Permiso` | `boolean especial`, `revocar()` vacío | ⚠️ Incompleto |
-| `RegistroAcceso` | `LocalDateTime` sin asignar, sin setters | ⚠️ Incompleto |
-| `NivelAcceso` | Enum `NIVEL_1`…`NIVEL_5`, sin valor ni comparación | ⚠️ Parcial |
-| `TipoPermiso` | No existe | ❌ |
-| `Main` de demostración | Vacío | ❌ |
+| Nombre `Empleado.nivelAcceso` | `nivelAcesso` (typo) | ⚠️ Conservado |
+| `Sector` | `idS`, constructor parametrizado, getters y setters | ✅ |
+| `Permiso` | `boolean especial`, constructor, setters y `revocar()` funcional | ✅ |
+| `RegistroAcceso` | `LocalDateTime.now()`, getters, setters y `toString()` | ✅ |
+| `NivelAcceso` | Enum `NIVEL_1`…`NIVEL_5`, evaluado por `ordinal()` | ⚠️ |
+| `TipoPermiso` | No existe (se usa `boolean especial`) | ❌ |
+| `Main` interactivo | Menú por consola conectado al Singleton | ✅ |
 
 ## 5.6. Plan de métodos de `ControlAcceso`
 
-> Estado: **propuesto**. Las firmas marcadas «existente» ya están en el código; las demás
-> hay que agregarlas. Cada bloque debe compilar y poder explicarse antes de pasar al
-> siguiente.
-
-| Método | Firma propuesta | Regla / propósito | Estado |
-|--------|-----------------|-------------------|--------|
-| Obtener instancia | `static ControlAcceso getInstance()` | Única instancia | ✅ Existente |
-| Alta de empleado | `void registrarEmpleado(Empleado empleado)` | RN-07 | ⚠️ Firma existente, sin cuerpo |
-| Alta de sector | `void registrarSector(Sector sector)` | RN-07 | ⚠️ Firma existente, sin cuerpo |
-| Asignar nivel | `void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso)` | Nivel del empleado | ⚠️ Firma existente, sin cuerpo |
-| Conceder permiso | `void concederPermiso(Permiso permiso)` | RN-02 y RN-07 | ⚠️ Firma existente, sin cuerpo |
-| Revocar permiso | `void revocarPermiso(Permiso permiso)` | RN-03: baja lógica | ⚠️ Firma existente, sin cuerpo |
-| Verificar acceso | `boolean verificarAcceso(int numEmpleado, int numSector)` | RN-01 y RN-02 | ⚠️ Firma existente, devuelve `false` |
-| Consultar historial | `RegistroAcceso consultarHistorial()` | Historial de intentos | ⚠️ Firma existente, devuelve `null` |
-| *(nuevo)* Buscar empleado | `Empleado buscarEmpleado(int identificacion)` | Auxiliar de verificación | ❌ Propuesto |
-| *(nuevo)* Buscar sector | `Sector buscarSector(int identificacion)` | Auxiliar de verificación | ❌ Propuesto |
-| *(nuevo)* Registrar intento | `RegistroAcceso registrarIntento(int numEmpleado, int numSector)` | RN-04 y RN-05 | ❌ Propuesto |
-| *(nuevo)* Buscar permiso | `Permiso buscarPermiso(Empleado, Sector)` | Reutilizado por conceder/revocar/verificar | ❌ Propuesto |
-| *(nuevo)* Permiso especial activo | `boolean tienePermisoEspecialActivo(Empleado, Sector)` | RN-02 | ❌ Propuesto |
-
-### Orden de implementación sugerido
-
-1. `NivelAcceso`: comparación por `ordinal()` (o valor numérico, si se retoma ADR-01).
-2. `Sector`: constructor con parámetros y setters.
-3. `Permiso`: constructor, setters y `revocar()`.
-4. `RegistroAcceso`: constructor que asigna `fechaHora` y setters.
-5. `ControlAcceso`: colecciones → altas → búsquedas → permisos → verificación → registro.
-6. `Main` con el caso de demostración.
+| Método | Firma implementada | Regla / propósito | Estado |
+|--------|--------------------|-------------------|--------|
+| Obtener instancia | `static ControlAcceso getInstance()` | Única instancia | ✅ Implementado |
+| Alta de empleado | `void registrarEmpleado(Empleado empleado)` | RN-07 / Alta con validación | ✅ Implementado |
+| Alta de sector | `void registrarSector(Sector sector)` | RN-07 / Alta con validación | ✅ Implementado |
+| Asignar nivel | `void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso)` | Nivel del empleado | ✅ Implementado |
+| Conceder permiso | `void concederPermiso(Permiso permiso)` | RN-02 y RN-07 | ✅ Implementado |
+| Revocar permiso | `void revocarPermiso(Permiso permiso)` | RN-03: baja lógica | ✅ Implementado |
+| Verificar acceso | `boolean verificarAcceso(int numEmpleado, int numSector)` | RN-01, RN-02, RN-04, RN-05 | ✅ Implementado |
+| Consultar historial | `List<RegistroAcceso> consultarHistorial()` | Copia defensiva de intentos | ✅ Implementado |
+| Buscar empleado | `Empleado buscarEmpleado(int identificacion)` | Auxiliar de verificación | ✅ Implementado |
+| Buscar sector | `Sector buscarSector(int idS)` | Auxiliar de verificación | ✅ Implementado |
+| Buscar permiso | `Permiso buscarPermiso(Empleado, Sector)` | Reutilizado por conceder/revocar/verificar | ✅ Implementado |
+| Permiso especial activo | `boolean tienePermisoEspecialActivo(Empleado, Sector)` | RN-02 | ✅ Implementado |
 
 ## 5.7. Cumplimiento de las reglas del proyecto
 
@@ -335,7 +305,7 @@ está en [Pruebas §6.3](06-pruebas.md#63-código-propuesto-para-main-cp-01-a-cp
 | Constructor privado (Singleton) | ✅ |
 | Método público de instancia (Singleton) | ✅ (`getInstance()`) |
 | Atributos privados | ✅ |
-| Getters y setters en todos los atributos | ⚠️ Solo `Empleado` tiene setters; `Sector` y `RegistroAcceso` no |
+| Getters y setters en todos los atributos | ✅ Implementados en todas las clases del modelo |
 
 ---
 

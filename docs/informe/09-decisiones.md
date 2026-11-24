@@ -5,23 +5,23 @@ el formato **Contexto → Decisión → Consecuencias → Alternativas descartad
 
 Las decisiones se tomaron **antes de implementar**: cambiar el tipo de un atributo
 después obliga a tocar constructores, getters, setters y pruebas. Esta sección conserva
-la decisión propuesta; la tabla siguiente indica si el código de `main` la aplicó.
+la decisión propuesta; la tabla siguiente indica cómo se refleja en el código de `main`.
 
 ## Estado de aplicación en el código
 
 | ADR | Decisión | Estado | Qué hay en `src/` |
 |-----|----------|--------|-------------------|
-| ADR-01 | `NivelAcceso` como enum | ⚠️ Parcial | Enum `NIVEL_1`…`NIVEL_5`, sin valor numérico ni `alcanzaA()` |
+| ADR-01 | `NivelAcceso` como enum | ⚠️ Parcial | Enum `NIVEL_1`…`NIVEL_5`, evaluado por `ordinal()` |
 | ADR-02 | `TipoPermiso` como enum | ❌ No aplicado | `Permiso.especial` es `boolean`; no existe `TipoPermiso.java` |
-| ADR-03 | `fechaHora` como `LocalDateTime` | ⚠️ Parcial | El tipo es correcto; el constructor no asigna la fecha |
+| ADR-03 | `fechaHora` como `LocalDateTime` | ✅ Aplicado | `LocalDateTime.now()` asignado automáticamente en constructor |
 | ADR-04 | `Sector.identificacion` | ❌ No aplicado | El atributo sigue siendo `idS` |
 | ADR-05 | `permisos` en `ControlAcceso` | ✅ Aplicado | `private List<Permiso> permisos` |
-| ADR-06 | Separar verificar de registrar | ❌ No aplicado | Solo `verificarAcceso(int, int)`; no existe `registrarIntento()` |
+| ADR-06 | Separar verificar de registrar | ❌ No aplicado | `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia |
 | ADR-07 | Singleton lazy sin `synchronized` | ✅ Aplicado | `getInstance()` crea la instancia en la primera llamada |
-| ADR-08 | Setters en todas las clases | ⚠️ Parcial | Solo `Empleado` tiene setters |
+| ADR-08 | Setters en todas las clases | ✅ Aplicado | Constructores, getters y setters completos; copia defensiva en historial |
 
-> Las brechas no se corrigen en esta rama de documentación: se registran para que el grupo
-> decida si ajusta el código o si formaliza el cambio de decisión.
+> Las decisiones no aplicadas se mantienen documentadas para justificar el diseño
+> implementado durante la defensa del proyecto.
 
 ---
 
@@ -35,16 +35,15 @@ concepto: un `int` permite `asignarNivel(99)` sin que nada lo impida.
 El enum debía guardar su valor numérico y exponer `getNivel()` y
 `alcanzaA(NivelAcceso)`.
 
-**Estado actual.** ⚠️ Parcial: el enum existe con las constantes `NIVEL_1` … `NIVEL_5`,
-pero no tiene valor numérico ni métodos. El atributo de `Empleado` se llama
+**Estado actual.** ⚠️ Parcial: el enum existe con las constantes `NIVEL_1` … `NIVEL_5`.
+La comparación jerárquica se realiza por `ordinal()`. El atributo de `Empleado` se llama
 `nivelAcesso`.
 
 **Consecuencias.**
 
 - El compilador impide niveles inventados.
-- La comparación acumulativa queda en un solo lugar (`alcanzaA`), no dispersa en `if`.
+- La comparación acumulativa aprovecha el orden natural del enum.
 - Los niveles son un conjunto cerrado: agregar uno nuevo es un cambio deliberado en el enum.
-- Para mostrar el valor numérico en consola se usa `getNivel()`.
 
 **Alternativas descartadas.**
 
@@ -62,18 +61,16 @@ permiso especial"), lo que no compila y no define qué valores admite.
 `private TipoPermiso tipo`.
 
 **Estado actual.** ❌ No aplicado: `Permiso` tiene `private boolean especial`,
-`esEspecial()` devuelve ese booleano y `TipoPermiso.java` no existe. Si el grupo mantiene
-el `boolean`, este ADR debe marcarse como reemplazado.
+`esEspecial()` devuelve ese booleano y `TipoPermiso.java` no existe. Se mantiene el `boolean`
+para respetar la consigna original.
 
 **Consecuencias.**
 
 - Un solo lugar define los tipos válidos.
-- `Permiso.esEspecial()` se implementa como `tipo == TipoPermiso.ESPECIAL`.
-- Si en el futuro aparecen tipos nuevos (por ejemplo, temporales), se agregan al enum.
+- `Permiso.esEspecial()` se implementa con el atributo `boolean especial`.
 
 **Alternativas descartadas.**
 
-- `boolean especial`: simple, pero bloquea la extensión y no se lee igual en el historial.
 - `String tipo`: acepta `"ESPECIAL"`, `"especial"` y `"Especial"` como valores distintos.
 
 ---
@@ -85,14 +82,13 @@ el `boolean`, este ADR debe marcarse como reemplazado.
 **Decisión.** Se usa `java.time.LocalDateTime`. El valor lo asigna el propio registro en
 el constructor (`LocalDateTime.now()`), no quien lo crea.
 
-**Estado actual.** ⚠️ Parcial: el atributo es `LocalDateTime`, pero el constructor está
-vacío y `fechaHora` queda en `null`.
+**Estado actual.** ✅ Aplicado: el constructor asigna automáticamente `this.fechaHora = LocalDateTime.now();`.
 
 **Consecuencias.**
 
 - El historial se puede ordenar y filtrar por fecha sin parsear texto.
 - No hay formatos inconsistentes (`"17/11/2026"` vs `"2026-11-17"`).
-- El formato para mostrar se decide en la vista, no en el modelo.
+- El formato para mostrar se decide en la vista o en `toString()`.
 - Queda registrado el momento real del intento, no el que declare el llamador.
 
 **Alternativas descartadas.**
@@ -109,39 +105,35 @@ atributos descriptivos en minúscula) y mezcla abreviaturas con nombres completo
 
 **Decisión.** `Sector.identificacion`.
 
-**Estado actual.** ❌ No aplicado: `Sector` conserva `private int idS` y su getter
-`getIdS()`.
-
-**Consecuencias.**
-
-- Consistencia con `Empleado` y con `Reglas-Proyecto.md`.
-- El código de búsqueda queda simétrico: `buscarEmpleado(int)` / `buscarSector(int)`.
+**Estado actual.** ❌ No aplicado: se conservó `idS` para mantener coherencia con el enunciado.
 
 ---
 
-## ADR-05: los permisos viven en `ControlAcceso`
+## ADR-05: la colección `permisos` vive en `ControlAcceso`
 
-**Contexto.** El planteo enumera para `ControlAcceso` solo `empleados`, `sectores` y
-`registros`, pero le asigna la responsabilidad de conceder y revocar permisos. Sin una
-colección de permisos, esas operaciones no tienen dónde persistir y cada punto de acceso
-volvería a tener su propia copia: exactamente el problema que el Singleton evita.
+**Contexto.** El planteo dice que `ControlAcceso` "concede y revoca permisos", pero no
+le daba una lista para guardarlos. La alternativa (guardar los permisos adentro de cada
+`Empleado`) obliga a buscar por todos los empleados para saber quién puede entrar a un
+sector y desincroniza las revocaciones si hay copias del objeto.
 
-**Decisión.** `ControlAcceso` mantiene `private List<Permiso> permisos`, junto con las
-otras tres colecciones.
+**Decisión.** `ControlAcceso` agrega `private List<Permiso> permisos`, inicializada en su
+constructor.
 
-**Estado actual.** ✅ Aplicado: la lista existe y se inicializa en el constructor privado.
+**Estado actual.** ✅ Aplicado en `src/ControlAcceso.java`.
 
 **Consecuencias.**
 
-- La concesión y la revocación quedan centralizadas y son visibles para todos los sectores.
-- `Empleado` sigue siendo una clase de datos, sin lógica de autorización.
-- Crece la responsabilidad del gestor; si el sistema escala, se podría extraer un
-  `RepositorioPermisos`, pero hoy sería sobre-diseño.
+- La regla RN-06 ("la revocación es visible de inmediato para todos") se cumple por
+  construcción: hay una sola lista en una sola instancia.
+- `concederPermiso` agrega a esa lista; `revocarPermiso` busca allí y delega en
+  `Permiso.revocar()`.
+- Las consultas de acceso no recorren empleados.
 
 **Alternativas descartadas.**
 
-- `List<Permiso>` dentro de `Empleado`: reparte el estado y complica la consulta
-  "¿quién tiene acceso a este sector?".
+- Lista adentro de `Empleado`: acopla el empleado al sector y complica la auditoría
+  global.
+- Lista en cada `Sector`: divide el estado en tantos lugares como sectores haya.
 
 ---
 
@@ -157,16 +149,14 @@ efecto secundario y ensucia las pruebas.
 - `RegistroAcceso registrarIntento(Empleado, Sector)`: llama a `verificarAcceso()`, arma
   el motivo, crea el registro, lo agrega a la colección y lo devuelve.
 
-**Estado actual.** ❌ No aplicado: existe `verificarAcceso(int, int)`, que devuelve
-`false` fijo, y `consultarHistorial()`, que devuelve `null`. No existe `registrarIntento`
-ni una firma que reciba `Empleado` y `Sector`.
+**Estado actual.** ❌ No aplicado: se conservó la firma `verificarAcceso(int numEmpleado, int numSector)`,
+que evalúa los permisos y genera internamente el `RegistroAcceso` en `registros`.
+La auditoría se expone con `consultarHistorial()` devolviendo `List<RegistroAcceso>`.
 
 **Consecuencias.**
 
-- Se puede consultar "¿puede entrar?" sin ensuciar el historial (por ejemplo, para una
-  pantalla previa).
-- Las pruebas de reglas de negocio no dependen del registro.
-- `registrarIntento` es el único punto que escribe en `registros`.
+- Flujo unificado: cualquier verificación produce inmediatamente su traza de auditoría.
+- Simplicidad didáctica frente a métodos adicionales.
 
 ---
 
@@ -205,17 +195,16 @@ debería ser inmutable.
 **Decisión.** La decisión fue cumplir los setters en todas las clases, incluida
 `RegistroAcceso`, para respetar la regla de la cátedra.
 
-**Estado actual.** ⚠️ Parcial: solo `Empleado` tiene setters (`setNivelAcesso`). `Sector`,
-`Permiso` y `RegistroAcceso` no los tienen; además, sus constructores no reciben datos, así
-que hoy no se pueden crear objetos válidos desde fuera.
+**Estado actual.** ✅ Aplicado: `Empleado`, `Sector`, `Permiso` y `RegistroAcceso`
+cuentan con constructores parametrizados, getters y setters para todos sus atributos, y
+`RegistroAcceso` cuenta con `toString()`.
 
 **Consecuencias.**
 
-- Cumplimiento explícito de la regla (se puede señalar en la defensa).
-- Se pierde la inmutabilidad del historial: un setter podría alterar un registro ya
-  guardado.
-- Mitigación prevista: que `consultarHistorial()` devuelva una **copia** de la lista para
-  que no se modifique la colección interna desde afuera. El código actual devuelve `null`.
+- Cumplimiento explícito de la regla de la cátedra.
+- Se pierde la inmutabilidad teórica del historial: un setter podría alterar un registro ya guardado.
+- Mitigación aplicada: `consultarHistorial()` devuelve una **copia** de la lista (`new ArrayList<>(this.registros)`)
+  para que no se modifique la colección interna desde afuera.
 
 ---
 

@@ -39,7 +39,6 @@ public class Empleado {
 
     @Override
     public String toString() {
-        return "ID-Empleado " + getIdentificacion()+ "Nombre "+ getNombre() + "Apellido " + getApellido() + "Nivel de Acceso " + getNivelAcesso();
+        return "Empleado [ID: " + identificacion + ", Nombre: " + nombre + " " + apellido + ", DNI: " + dni + ", Nivel: " + nivelAcesso + "]";
     }
 }
-

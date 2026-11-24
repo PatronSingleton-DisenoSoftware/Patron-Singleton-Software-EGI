@@ -175,9 +175,29 @@ public class ControlAcceso {
     }
 
 
-    public RegistroAcceso consultarHistorial(){
-        // Esta en null a modo de ejemplo para que no de error
-        return null;
+    // Devuelve el historial de intentos (copia defensiva)
+    public List<RegistroAcceso> consultarHistorial(){
+        if (this.registros.isEmpty()){
+            System.out.println("El historial esta vacio: no hay intentos de acceso registrados");
+            return new ArrayList<>();
+        }
+        // Se devuelve una copia para que el cliente no modifique la lista interna
+        return new ArrayList<>(this.registros);
+    }
+
+    // Devuelve copia defensiva de empleados registrados
+    public List<Empleado> getEmpleados() {
+        return new ArrayList<>(this.empleados);
+    }
+
+    // Devuelve copia defensiva de sectores registrados
+    public List<Sector> getSectores() {
+        return new ArrayList<>(this.sectores);
+    }
+
+    // Devuelve copia defensiva de permisos
+    public List<Permiso> getPermisos() {
+        return new ArrayList<>(this.permisos);
     }
 
     // --- Ayudantes -------
