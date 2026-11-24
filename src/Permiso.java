@@ -47,4 +47,13 @@ public class Permiso {
     public void revocar(){
         this.activo = false;
     }
+
+    @Override
+    public String toString() {
+        String estado = activo ? "ACTIVO" : "REVOCADO";
+        String tipo = especial ? "Especial" : "Regular";
+        String emp = (empleado != null) ? empleado.getNombre() + " " + empleado.getApellido() : "Sin empleado";
+        String sec = (sector != null) ? sector.getNombre() : "Sin sector";
+        return "Permiso [" + estado + " | " + tipo + "] Empleado: " + emp + " -> Sector: " + sec;
+    }
 }

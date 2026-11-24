@@ -5,15 +5,15 @@
 | Dato | Valor |
 |------|-------|
 | **Modalidad** | Grupal |
-| **Integrantes** | [Completar nombre y apellido — Legajo] <br> [Completar nombre y apellido — Legajo] |
+| **Integrantes** | Candito, Yampa <br> Rodriguez, Federico <br> Gilio, Giuliano <br> Marasco, Lucas |
 | **Carrera** | Tecnicatura Universitaria en Desarrollo de Software |
 | **Espacio curricular** | Diseño de Software — 2.º año, 3.er semestre |
 | **Institución** | ITU — Instituto Tecnológico Universitario, Universidad Nacional de Cuyo, Sede Este |
 | **Docente** | Lic. Ignacio G. Fontaine Digier |
-| **Fecha de entrega** | [Completar] |
+| **Fecha de entrega** | 30/11/2026 |
 | **Patrón elegido** | **Singleton** |
 | **Lenguaje** | **Java** (versión 23; código compatible con Java 17+) |
-| **Repositorio GitHub** | [Completar enlace público con acceso para el docente] |
+| **Repositorio GitHub** | <https://github.com/PatronSingleton-DisenoSoftware/Patron-Singleton-Software-EGI> |
 
 > **Estado de este documento:** informe completo. Las cuatro secciones requeridas
 > presentan el análisis del problema, el diseño arquitectónico alineado con el diagrama UML,
