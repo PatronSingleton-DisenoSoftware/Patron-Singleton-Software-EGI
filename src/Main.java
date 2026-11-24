@@ -3,16 +3,41 @@ import java.util.Scanner;
 
 public class Main {
 
-    // Metodo auxiliar para leer un entero de forma segura evitando caidas por InputMismatchException
+    // Lee un entero como línea completa para poder rechazar entradas mezcladas o inválidas.
     private static int leerEntero(Scanner entradaDatos, String mensaje) {
-        System.out.print(mensaje);
-        while (!entradaDatos.hasNextInt()) {
-            entradaDatos.nextLine(); // descarta entrada no numerica
-            System.out.print("Entrada invalida. Por favor ingrese un numero entero: ");
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            try {
+                return Integer.parseInt(entrada);
+            } catch (NumberFormatException error) {
+                System.out.println("El tipo de dato no coincide. Ingrese un numero entero.");
+            }
         }
-        int valor = entradaDatos.nextInt();
-        entradaDatos.nextLine(); // limpia el salto de linea pendiente
-        return valor;
+    }
+
+    // Los nombres aceptan letras Unicode, espacios, guiones y apostrofes.
+    private static String leerNombre(Scanner entradaDatos, String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            if (entrada.matches("(?U)[\\p{L}]+(?:[ '\\-][\\p{L}]+)*")) {
+                return entrada;
+            }
+            System.out.println("El tipo de dato no coincide. Ingrese un nombre con letras.");
+        }
+    }
+
+    // El nombre del sector puede incluir numeros, por ejemplo "Piso 2", pero debe tener letras.
+    private static String leerNombreSector(Scanner entradaDatos, String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = entradaDatos.nextLine().trim();
+            if (!entrada.isEmpty() && entrada.matches("(?s).*\\p{L}.*")) {
+                return entrada;
+            }
+            System.out.println("El tipo de dato no coincide. Ingrese un texto con al menos una letra.");
+        }
     }
 
     // Metodo auxiliar para leer y validar un NivelAcceso por consola
@@ -62,11 +87,8 @@ public class Main {
 
         int dni = Integer.parseInt(dniTexto);
 
-        System.out.print("Nombre: ");
-        String nombre = entradaDatos.nextLine();
-
-        System.out.print("Apellido: ");
-        String apellido = entradaDatos.nextLine();
+        String nombre = leerNombre(entradaDatos, "Nombre: ");
+        String apellido = leerNombre(entradaDatos, "Apellido: ");
 
         boolean nombreValido = (nombre != null && !nombre.trim().equals(""));
         boolean apellidoValido = (apellido != null && !apellido.trim().equals(""));
@@ -87,23 +109,19 @@ public class Main {
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
-        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
+        int idS = leerEntero(entradaDatos, "ID del Sector: ");
 
-        if (idSector <= 0) {
+        if (idS <= 0) {
             System.out.println("Error: El ID del sector debe ser mayor a 0.");
             return;
         }
 
-        System.out.print("Nombre del Sector: ");
-        String nombreSector = entradaDatos.nextLine().trim();
+        String nombre = leerNombreSector(entradaDatos, "Nombre del Sector: ");
 
-        if (nombreSector.equals("")) {
-            System.out.println("Error: El nombre del sector no puede estar vacio.");
-            return;
-        }
+        System.out.println("Nivel minimo requerido para ingresar al sector:");
+        NivelAcceso nivelRequerido = leerNivelAcceso(entradaDatos);
 
-        NivelAcceso nivelMinimo = leerNivelAcceso(entradaDatos);
-        Sector sector = new Sector(idSector, nombreSector, nivelMinimo);
+        Sector sector = new Sector(idS, nombre, nivelRequerido);
         control.registrarSector(sector);
     }
 
@@ -169,6 +187,7 @@ public class Main {
             return;
         }
 
+
         Permiso permiso = new Permiso(emp, sec, true);
         control.revocarPermiso(permiso);
     }
@@ -202,7 +221,7 @@ public class Main {
     // 9 - Demostracion automatica del patron Singleton y reglas de negocio
     public static void funcionDemostracionAutomatica(ControlAcceso control) {
         System.out.println("\n========================================================");
-        System.out.println("         DEMOSTRACION AUTOMATICA DEL SISTEMA            ");
+        System.out.println("         DEMOBRACION AUTOMATICA DEL SISTEMA            ");
         System.out.println("========================================================");
 
         // CP-01 y CP-02: Demostracion de unicidad de instancia
@@ -273,17 +292,7 @@ public class Main {
             System.out.println("8 - Consultar historial de accesos");
             System.out.println("9 - Ejecutar demostracion automatica completa");
             System.out.println("0 - Salir");
-            System.out.print("Seleccione una opcion: ");
-
-            int opcion = -1;
-            if (entradaDatos.hasNextInt()) {
-                opcion = entradaDatos.nextInt();
-                entradaDatos.nextLine(); // limpia el salto
-            } else {
-                entradaDatos.nextLine(); // descarta entrada no numerica
-                System.out.println("Por favor ingrese un numero valido.");
-                continue;
-            }
+            int opcion = leerEntero(entradaDatos, "Seleccione una opcion: ");
 
             switch (opcion) {
                 case 1:
