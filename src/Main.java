@@ -3,6 +3,18 @@ import java.util.Scanner;
 
 public class Main {
 
+    // Metodo auxiliar para leer un entero de forma segura evitando caidas por InputMismatchException
+    private static int leerEntero(Scanner entradaDatos, String mensaje) {
+        System.out.print(mensaje);
+        while (!entradaDatos.hasNextInt()) {
+            entradaDatos.nextLine(); // descarta entrada no numerica
+            System.out.print("Entrada invalida. Por favor ingrese un numero entero: ");
+        }
+        int valor = entradaDatos.nextInt();
+        entradaDatos.nextLine(); // limpia el salto de linea pendiente
+        return valor;
+    }
+
     // Metodo auxiliar para leer y validar un NivelAcceso por consola
     private static NivelAcceso leerNivelAcceso(Scanner entradaDatos) {
         System.out.println("Nivel 1 - Acceso General");
@@ -13,9 +25,7 @@ public class Main {
 
         int nivel;
         do {
-            System.out.print("Seleccione nivel (1 a 5): ");
-            nivel = entradaDatos.nextInt();
-            entradaDatos.nextLine(); // limpia el salto de linea
+            nivel = leerEntero(entradaDatos, "Seleccione nivel (1 a 5): ");
             if (nivel < 1 || nivel > 5) {
                 System.out.println("Nivel invalido. Debe ser un numero entre 1 y 5.");
             }
@@ -27,9 +37,12 @@ public class Main {
     // 1 - Registrar empleado
     public static void funcionRegistrarEmpleado(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Empleado ---");
-        System.out.print("Identificacion (ID numerico): ");
-        int identificacion = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int identificacion = leerEntero(entradaDatos, "Identificacion (ID numerico): ");
+
+        if (identificacion <= 0) {
+            System.out.println("Error: La identificacion debe ser mayor a 0.");
+            return;
+        }
 
         System.out.print("DNI: ");
         String dniTexto = entradaDatos.nextLine().trim();
@@ -42,8 +55,8 @@ public class Main {
             }
         }
 
-        if (!soloNumeros || dniTexto.length() != 8) {
-            System.out.println("DNI invalido.");
+        if (!soloNumeros || (dniTexto.length() != 7 && dniTexto.length() != 8)) {
+            System.out.println("DNI invalido. Debe tener 7 u 8 digitos numericos.");
             return;
         }
 
@@ -74,9 +87,12 @@ public class Main {
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
-        System.out.print("ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
+
+        if (idSector <= 0) {
+            System.out.println("Error: El ID del sector debe ser mayor a 0.");
+            return;
+        }
 
         System.out.print("Nombre del Sector: ");
         String nombreSector = entradaDatos.nextLine().trim();
@@ -120,11 +136,8 @@ public class Main {
     // 5 - Conceder permiso especial
     public static void funcionConcederPermiso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Conceder Permiso Especial ---");
-        System.out.print("ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
 
         Empleado emp = control.buscarEmpleado(idEmpleado);
         Sector sec = control.buscarSector(idSector);
@@ -145,11 +158,8 @@ public class Main {
     // 6 - Revocar permiso
     public static void funcionRevocarPermiso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Revocar Permiso ---");
-        System.out.print("ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
 
         Empleado emp = control.buscarEmpleado(idEmpleado);
         Sector sec = control.buscarSector(idSector);
@@ -166,11 +176,8 @@ public class Main {
     // 7 - Verificar acceso
     public static void funcionVerificarAcceso(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Punto de Acceso (Lector de Credencial) ---");
-        System.out.print("Ingrese ID del Empleado: ");
-        int idEmpleado = entradaDatos.nextInt();
-        System.out.print("Ingrese ID del Sector: ");
-        int idSector = entradaDatos.nextInt();
-        entradaDatos.nextLine();
+        int idEmpleado = leerEntero(entradaDatos, "Ingrese ID del Empleado: ");
+        int idSector = leerEntero(entradaDatos, "Ingrese ID del Sector: ");
 
         boolean autorizado = control.verificarAcceso(idEmpleado, idSector);
         if (autorizado) {

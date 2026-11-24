@@ -23,14 +23,14 @@ public class Empleado {
             return;
         }
 
-        this.registroValido = true;
-
         if (identificacion <= 0) {
-            this.identificacion = 0;
-        } else {
-            this.identificacion = identificacion;
+            this.registroValido = false;
+            System.out.println("No se puede registrar este empleado porque la identificacion debe ser mayor a 0.");
+            return;
         }
 
+        this.registroValido = true;
+        this.identificacion = identificacion;
         this.dni = dni;
         this.nombre = nombre.trim();
         this.apellido = apellido.trim();
@@ -52,6 +52,10 @@ public class Empleado {
 
     public boolean isRegistroValido() {
         return registroValido;
+    }
+
+    public void setRegistroValido(boolean registroValido) {
+        this.registroValido = registroValido;
     }
 
     public int getDni() {

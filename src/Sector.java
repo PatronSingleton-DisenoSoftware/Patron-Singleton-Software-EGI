@@ -6,8 +6,8 @@ public class Sector {
 
     public Sector(int idS, String nombre, NivelAcceso nivelRequerido){
         this.idS = idS;
-        this.nombre = nombre;
-        this.nivelRequerido = nivelRequerido;
+        this.nombre = (nombre != null) ? nombre.trim() : "";
+        this.nivelRequerido = (nivelRequerido != null) ? nivelRequerido : NivelAcceso.NIVEL_1;
     }
 
     public String getNombre() {
@@ -23,14 +23,26 @@ public class Sector {
     }
 
     public void setIdS(int idS) {
+        if (idS <= 0) {
+            System.out.println("Error: el ID del sector debe ser mayor a 0.");
+            return;
+        }
         this.idS = idS;
     }
 
     public void setNombre(String nombre) {
-        this.nombre = nombre;
+        if (nombre == null || nombre.trim().equals("")) {
+            System.out.println("Error: el nombre del sector no puede estar vacio.");
+            return;
+        }
+        this.nombre = nombre.trim();
     }
 
     public void setNivelRequerido(NivelAcceso nivelRequerido) {
+        if (nivelRequerido == null) {
+            System.out.println("Error: el nivel requerido no puede ser nulo.");
+            return;
+        }
         this.nivelRequerido = nivelRequerido;
     }
 

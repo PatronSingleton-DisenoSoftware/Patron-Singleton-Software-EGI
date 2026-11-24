@@ -32,9 +32,22 @@ public class ControlAcceso {
             System.out.println("Error, no puede cargar datos vacios");
             return;
         }
-        // Un empleado no se puede dar de alta dos veces
+        if (!empleado.isRegistroValido()) {
+            System.out.println("Error, no se puede registrar un empleado con datos invalidos");
+            return;
+        }
+        if (empleado.getIdentificacion() <= 0) {
+            System.out.println("Error, la identificacion del empleado debe ser mayor a 0");
+            return;
+        }
+        // Un empleado no se puede dar de alta dos veces por identificacion
         if (buscarEmpleado(empleado.getIdentificacion()) != null){
             System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
+            return;   // no se agrega
+        }
+        // Tampoco por DNI
+        if (buscarEmpleadoPorDni(empleado.getDni()) != null){
+            System.out.println("Ya existe un empleado con DNI " + empleado.getDni());
             return;   // no se agrega
         }
         empleados.add(empleado);
@@ -45,6 +58,10 @@ public class ControlAcceso {
         // Guarda: no se aceptan datos vacios
         if (sector == null){
             System.out.println("Error, no puede cargar datos vacios");
+            return;
+        }
+        if (sector.getIdS() <= 0){
+            System.out.println("Error, el ID del sector debe ser mayor a 0");
             return;
         }
         // Un sector no se puede dar de alta dos veces
@@ -132,22 +149,24 @@ public class ControlAcceso {
         Empleado empleado = buscarEmpleado(numEmpleado);
         Sector sector = buscarSector(numSector);
 
-        //1. Validaciones previas
+        // 1. Validaciones previas con registro en el historial (RN-04 y RN-05)
         if (empleado == null){
             String motivo = "Empleado no registrado";
             System.out.println("Acceso denegado: " + motivo);
+            this.registros.add(new RegistroAcceso(null, sector, false, motivo));
             return false;
         }
         if (sector == null) {
             String motivo = "Sector inexistente";
             System.out.println("Acceso denegado: " + motivo);
+            this.registros.add(new RegistroAcceso(empleado, null, false, motivo));
             return false;
         }
         boolean autorizado = false;
         String motivo = null;
 
         // 2. Verificar jerarquía de niveles (RN-01)
-        if (empleado.getNivelAcceso().alcanzaA(sector.getNivelRequerido())) {
+        if (empleado.getNivelAcceso() != null && empleado.getNivelAcceso().alcanzaA(sector.getNivelRequerido())) {
             autorizado = true;
             motivo = "Acceso autorizado por nivel";
         }
@@ -204,6 +223,15 @@ public class ControlAcceso {
     public Empleado buscarEmpleado(int identificacion){
         for (Empleado emp : this.empleados){
             if (emp.getIdentificacion() == identificacion){
+                return emp;
+            }
+        }
+        return null;
+    }
+
+    public Empleado buscarEmpleadoPorDni(int dni){
+        for (Empleado emp : this.empleados){
+            if (emp.getDni() == dni){
                 return emp;
             }
         }
