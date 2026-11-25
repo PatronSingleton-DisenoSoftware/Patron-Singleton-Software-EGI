@@ -235,7 +235,7 @@ public class Main {
     }
 
     // 9 - Demostracion automatica del patron Singleton y reglas de negocio
-    public static void funcionDemostracionAutomatica(ControlAcceso control) {
+    public static void funcionDemostracionAutomatica(ControlAcceso control) {// Sacar? que funcion tiene? que hace?
         System.out.println("\n========================================================");
         System.out.println("         DEMOBRACION AUTOMATICA DEL SISTEMA            ");
         System.out.println("========================================================");
@@ -296,8 +296,10 @@ public class Main {
         Scanner entradaDatos = new Scanner(System.in);
         ControlAcceso control = ControlAcceso.getInstance();
 
+        control.setMostrarMensajesRegistro(false);// Esto es para que no se vean los empleados al principio
+
         // 5 Empleados por defecto
-        Empleado e1 = new Empleado(1, 45123456, "Juan", "Perez", NivelAcceso.NIVEL_1);
+        Empleado e1 = new Empleado(1, 45123456, "Juan", "Perez", NivelAcceso.NIVEL_4);
         Empleado e2 = new Empleado(2, 42345678, "Maria", "Gonzalez", NivelAcceso.NIVEL_2);
         Empleado e3 = new Empleado(3, 39876543, "Lucas", "Fernandez", NivelAcceso.NIVEL_3);
         Empleado e4 = new Empleado(4, 35678901, "Sofia", "Martinez", NivelAcceso.NIVEL_2);
@@ -308,6 +310,8 @@ public class Main {
         control.registrarEmpleado(e3);
         control.registrarEmpleado(e4);
         control.registrarEmpleado(e5);
+
+        control.setMostrarMensajesRegistro(false);// Esto es para que no se vean los sectores al principio
 
         // 5 Sectores por defecto
         Sector s1 = new Sector(1, "Recepcion", NivelAcceso.NIVEL_1);
@@ -372,6 +376,8 @@ public class Main {
                 default:
                     System.out.println("Opcion invalida. Intente nuevamente.");
             }
+
+
         }
         entradaDatos.close();
     }
