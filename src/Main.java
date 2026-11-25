@@ -3,6 +3,8 @@ import java.util.Scanner;
 
 public class Main {
 
+
+
     // Lee un entero como línea completa para poder rechazar entradas mezcladas o inválidas.
     private static int leerEntero(Scanner entradaDatos, String mensaje) {
         while (true) {
@@ -68,6 +70,12 @@ public class Main {
             System.out.println("Error: La identificacion debe ser mayor a 0.");
             return;
         }
+        // Evitar que coincida con el ID de un empleado
+        if (control.buscarEmpleado(identificacion) != null) {
+            System.out.println("Error: Ya existe un empleado con esa identificacion.");
+            return;
+        }
+
 
         System.out.print("DNI: ");
         String dniTexto = entradaDatos.nextLine().trim();
@@ -86,6 +94,11 @@ public class Main {
         }
 
         int dni = Integer.parseInt(dniTexto);
+        // Evitar que se repita el DNI de otro empleado
+        if (control.buscarEmpleadoPorDni(dni) != null) {
+            System.out.println("Error: Ya existe un empleado con ese DNI.");
+            return;
+        }
 
         String nombre = leerNombre(entradaDatos, "Nombre: ");
         String apellido = leerNombre(entradaDatos, "Apellido: ");
@@ -113,6 +126,12 @@ public class Main {
 
         if (idS <= 0) {
             System.out.println("Error: El ID del sector debe ser mayor a 0.");
+            return;
+        }
+
+        // Evitar que se repita el ID de otro sector
+        if (control.buscarSector(idS) != null) {
+            System.out.println("Error: Ya existe un sector con ese ID.");
             return;
         }
 
@@ -278,6 +297,32 @@ public class Main {
     public static void main(String[] args) {
         Scanner entradaDatos = new Scanner(System.in);
         ControlAcceso control = ControlAcceso.getInstance();
+
+        // 5 Empleados por defecto
+        Empleado e1 = new Empleado(1, 45123456, "Juan", "Perez", NivelAcceso.NIVEL_1);
+        Empleado e2 = new Empleado(2, 42345678, "Maria", "Gonzalez", NivelAcceso.NIVEL_2);
+        Empleado e3 = new Empleado(3, 39876543, "Lucas", "Fernandez", NivelAcceso.NIVEL_3);
+        Empleado e4 = new Empleado(4, 35678901, "Sofia", "Martinez", NivelAcceso.NIVEL_2);
+        Empleado e5 = new Empleado(5, 47890123, "Pedro", "Rodriguez", NivelAcceso.NIVEL_1);
+
+        control.registrarEmpleado(e1);
+        control.registrarEmpleado(e2);
+        control.registrarEmpleado(e3);
+        control.registrarEmpleado(e4);
+        control.registrarEmpleado(e5);
+
+        // 5 Sectores por defecto
+        Sector s1 = new Sector(1, "Recepcion", NivelAcceso.NIVEL_1);
+        Sector s2 = new Sector(2, "Administracion", NivelAcceso.NIVEL_2);
+        Sector s3 = new Sector(3, "Oficinas", NivelAcceso.NIVEL_3);
+        Sector s4 = new Sector(4, "Sala de Servidores", NivelAcceso.NIVEL_4);
+        Sector s5 = new Sector(5, "Direccion", NivelAcceso.NIVEL_5);
+
+        control.registrarSector(s1);
+        control.registrarSector(s2);
+        control.registrarSector(s3);
+        control.registrarSector(s4);
+        control.registrarSector(s5);
         boolean salir = false;
 
         while (!salir) {
