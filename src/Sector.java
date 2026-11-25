@@ -27,9 +27,7 @@ public class Sector {
             System.out.println("Error: el ID del sector debe ser mayor a 0.");
             return;
         }
-
         this.idS = idS;
-
     }
 
     public void setNombre(String nombre) {

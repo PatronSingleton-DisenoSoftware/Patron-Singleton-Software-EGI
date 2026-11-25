@@ -25,7 +25,6 @@ public class ControlAcceso {
         return instancia;
     }
 
-
     // Metodos publicos o privados
     public void registrarEmpleado(Empleado empleado){
         // Guarda: no se aceptan datos vacios
