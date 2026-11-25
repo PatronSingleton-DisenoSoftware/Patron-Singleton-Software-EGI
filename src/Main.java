@@ -68,6 +68,11 @@ public class Main {
             System.out.println("Error: La identificacion debe ser mayor a 0.");
             return;
         }
+        // Evitar que coincida con el ID de un empleado
+        if (control.buscarEmpleado(identificacion) != null) {
+            System.out.println("Error: Ya existe un empleado con esa identificacion.");
+            return;
+        }
 
         System.out.print("DNI: ");
         String dniTexto = entradaDatos.nextLine().trim();
@@ -86,6 +91,11 @@ public class Main {
         }
 
         int dni = Integer.parseInt(dniTexto);
+        // Evitar que se repita el DNI de otro empleado
+        if (control.buscarEmpleadoPorDni(dni) != null) {
+            System.out.println("Error: Ya existe un empleado con ese DNI.");
+            return;
+        }
 
         String nombre = leerNombre(entradaDatos, "Nombre: ");
         String apellido = leerNombre(entradaDatos, "Apellido: ");
@@ -113,6 +123,12 @@ public class Main {
 
         if (idS <= 0) {
             System.out.println("Error: El ID del sector debe ser mayor a 0.");
+            return;
+        }
+
+        // Evitar que se repita el ID de otro sector
+        if (control.buscarSector(idS) != null) {
+            System.out.println("Error: Ya existe un sector con ese ID.");
             return;
         }
 
@@ -234,38 +250,39 @@ public class Main {
 
         // Registro de datos de prueba
         System.out.println("\n[2] Registrando sectores y empleados de prueba:");
-        Sector recepcion = new Sector(10, "Recepcion", NivelAcceso.NIVEL_1);
-        Sector servidores = new Sector(20, "Sala de Servidores", NivelAcceso.NIVEL_4);
+        // IDs propios de la demo: no se repiten con los datos precargados en main()
+        Sector recepcion = new Sector(110, "Recepcion", NivelAcceso.NIVEL_1);
+        Sector servidores = new Sector(120, "Sala de Servidores", NivelAcceso.NIVEL_4);
         control.registrarSector(recepcion);
         control.registrarSector(servidores);
 
-        Empleado ana = new Empleado(1, 40111222, "Ana", "Gomez", NivelAcceso.NIVEL_2);
-        Empleado carlos = new Empleado(2, 35333444, "Carlos", "Lopez", NivelAcceso.NIVEL_4);
+        Empleado ana = new Empleado(101, 40111222, "Ana", "Gomez", NivelAcceso.NIVEL_2);
+        Empleado carlos = new Empleado(102, 35333444, "Carlos", "Lopez", NivelAcceso.NIVEL_4);
         control.registrarEmpleado(ana);
         control.registrarEmpleado(carlos);
 
         // Verificaciones por nivel
         System.out.println("\n[3] Prueba de acceso por nivel acumulativo:");
-        System.out.println("    • Ana (NIVEL_2) intenta entrar a Recepcion (NIVEL_1):");
-        control.verificarAcceso(1, 10);
+        System.out.println("    • Ana (ID 101, NIVEL_2) intenta entrar a Recepcion (ID 110, NIVEL_1):");
+        control.verificarAcceso(101, 110);
 
-        System.out.println("    • Ana (NIVEL_2) intenta entrar a Sala de Servidores (NIVEL_4):");
-        control.verificarAcceso(1, 20);
+        System.out.println("    • Ana (ID 101, NIVEL_2) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
+        control.verificarAcceso(101, 120);
 
-        System.out.println("    • Carlos (NIVEL_4) intenta entrar a Sala de Servidores (NIVEL_4):");
-        control.verificarAcceso(2, 20);
+        System.out.println("    • Carlos (ID 102, NIVEL_4) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
+        control.verificarAcceso(102, 120);
 
         // Permiso especial y revocacion
         System.out.println("\n[4] Prueba de permiso especial y revocacion:");
-        System.out.println("    • Concediendo permiso especial a Ana para Sala de Servidores...");
+        System.out.println("    • Concediendo permiso especial a Ana (ID 101) para Sala de Servidores...");
         control.concederPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana intenta entrar nuevamente a Sala de Servidores:");
-        control.verificarAcceso(1, 20);
+        System.out.println("    • Ana (ID 101) intenta entrar nuevamente a Sala de Servidores:");
+        control.verificarAcceso(101, 120);
 
-        System.out.println("    • Revocando permiso especial de Ana...");
+        System.out.println("    • Revocando permiso especial de Ana (ID 101)...");
         control.revocarPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana intenta entrar tras la revocacion:");
-        control.verificarAcceso(1, 20);
+        System.out.println("    • Ana (ID 101) intenta entrar tras la revocacion:");
+        control.verificarAcceso(101, 120);
 
         // Historial centralizado
         System.out.println("\n[5] Auditoria del historial centralizado:");
@@ -278,6 +295,32 @@ public class Main {
     public static void main(String[] args) {
         Scanner entradaDatos = new Scanner(System.in);
         ControlAcceso control = ControlAcceso.getInstance();
+
+        // 5 Empleados por defecto
+        Empleado e1 = new Empleado(1, 45123456, "Juan", "Perez", NivelAcceso.NIVEL_1);
+        Empleado e2 = new Empleado(2, 42345678, "Maria", "Gonzalez", NivelAcceso.NIVEL_2);
+        Empleado e3 = new Empleado(3, 39876543, "Lucas", "Fernandez", NivelAcceso.NIVEL_3);
+        Empleado e4 = new Empleado(4, 35678901, "Sofia", "Martinez", NivelAcceso.NIVEL_2);
+        Empleado e5 = new Empleado(5, 47890123, "Pedro", "Rodriguez", NivelAcceso.NIVEL_1);
+
+        control.registrarEmpleado(e1);
+        control.registrarEmpleado(e2);
+        control.registrarEmpleado(e3);
+        control.registrarEmpleado(e4);
+        control.registrarEmpleado(e5);
+
+        // 5 Sectores por defecto
+        Sector s1 = new Sector(1, "Recepcion", NivelAcceso.NIVEL_1);
+        Sector s2 = new Sector(2, "Administracion", NivelAcceso.NIVEL_2);
+        Sector s3 = new Sector(3, "Oficinas", NivelAcceso.NIVEL_3);
+        Sector s4 = new Sector(4, "Sala de Servidores", NivelAcceso.NIVEL_4);
+        Sector s5 = new Sector(5, "Direccion", NivelAcceso.NIVEL_5);
+
+        control.registrarSector(s1);
+        control.registrarSector(s2);
+        control.registrarSector(s3);
+        control.registrarSector(s4);
+        control.registrarSector(s5);
         boolean salir = false;
 
         while (!salir) {
