@@ -8,6 +8,11 @@ public class ControlAcceso {
     private List<Permiso>permisos;
     private List <RegistroAcceso>registros;
     private static ControlAcceso instancia;
+    private boolean mostrarMensajesRegistro = true;
+
+    public void setMostrarMensajesRegistro(boolean mostrar) {
+        this.mostrarMensajesRegistro = mostrar;
+    }
 
     // Constructor de acceso unico
     private ControlAcceso(){
@@ -51,7 +56,9 @@ public class ControlAcceso {
             return;   // no se agrega
         }
         empleados.add(empleado);
-        System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
+        if (mostrarMensajesRegistro) {
+            System.out.println("Empleado registrado: " + empleado.getNombre() + " " + empleado.getApellido());
+        }
     }
 
     public void registrarSector(Sector sector){
@@ -70,7 +77,9 @@ public class ControlAcceso {
             return;   // no se agrega
         }
         sectores.add(sector);
-        System.out.println("Sector registrado: " + sector.getNombre());
+        if (mostrarMensajesRegistro) {
+            System.out.println("Sector registrado: " + sector.getNombre());
+        }
     }
 
     public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso){
