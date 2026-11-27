@@ -11,6 +11,7 @@
 | **Institución** | ITU — Instituto Tecnológico Universitario, Universidad Nacional de Cuyo, Sede Este |
 | **Docente** | Lic. Ignacio G. Fontaine Digier |
 | **Fecha de entrega** | 30/11/2026 |
+| **Versión del documento** | 1.1 |
 | **Patrón elegido** | **Singleton** |
 | **Lenguaje** | **Java** (versión 23; código compatible con Java 17+) |
 | **Repositorio GitHub** | <https://github.com/PatronSingleton-DisenoSoftware/Patron-Singleton-Software-EGI> |
@@ -178,8 +179,7 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 | `Sector` | `idSector`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
 | `Permiso` | `empleado`, `sector`, `activo`, `especial` | Relación empleado–sector, con baja lógica. |
 | `RegistroAcceso` | `empleado`, `sector`, `fechaHora`, `autorizado`, `motivo` | Evidencia del intento, para auditoría. |
-| `NivelAcceso` | `NIVEL_1` … `NIVEL_5` | Niveles acumulativos, en el orden en que se declaran. |
-| `TipoPermiso` | — | **No existe en el código**: el tipo de permiso se representa con el `boolean especial`. |
+| `NivelAcceso` | `NIVEL_1` … `NIVEL_5` | Niveles acumulativos según su valor numérico (`getNivel()`). |
 
 > **Nombres tal como están en el código.** El diagrama y estas tablas usan los
 > identificadores reales de `src/` en `main`, incluidos `getInstance()`, `nivelAcceso`,
@@ -274,8 +274,7 @@ src/
 ├── Permiso.java          ← 4 atributos, constructor con datos, getters, setters y revocar()
 ├── RegistroAcceso.java   ← 5 atributos, constructor con LocalDateTime.now(), getters, setters y toString()
 ├── Sector.java           ← 3 atributos, validación vía setters, getters, setters y toString()
-├── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
-└── (TipoPermiso.java no existe)
+└── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
 ```
 
 ## 3.3. Código del Singleton (`ControlAcceso.java`)
@@ -527,7 +526,7 @@ implementación actual no es segura frente a hilos. Ninguno de esos costos inval
 elección del patrón, pero **un informe que los omitiera sería incompleto**: la consigna
 evalúa justamente el criterio para reconocerlos.
 
-La deuda técnica queda registrada en el [Anexo](#anexo-decisiones-de-diseño) (ADR-06 y ADR-07).
+La deuda técnica queda registrada en el [Anexo](#anexo-decisiones-de-diseño) (ADR-02, ADR-06 y ADR-07).
 
 ---
 

@@ -14,12 +14,12 @@
 
 **Integrantes:**
 
-| Nombre y apellido  |
+| Apellido, Nombre   |
 |--------------------|
-| Yampa Candito      |
-| Federico Rodriguez |
-| Giuliano Gilio     |
-| Lucas Marasco      |
+| Candito, Yampa     |
+| Rodriguez, Federico |
+| Gilio, Giuliano    |
+| Marasco, Lucas     |
 
 **Patrón elegido:** Singleton
 
