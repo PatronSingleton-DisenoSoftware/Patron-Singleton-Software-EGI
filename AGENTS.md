@@ -137,9 +137,9 @@ Mantener actualizado `docs/informe/07-conclusiones.md` y el
 
 - Idioma: **español** (código, comentarios, docs y mensajes de commit).
 - Formato: Markdown UTF-8.
-- Diagramas: Mermaid embebido en los `.md` para los flujos. El UML de entrega se mantiene
-  en `docs/assets/uml-clases.puml`, se renderiza a `uml-clases.png` y se embebe como imagen
-  (ver `docs/README.md`).
+- Diagramas: Mermaid embebido en los `.md` del informe de trabajo. Las figuras del documento
+  de entrega se mantienen en `docs/assets/uml-clases.puml` y `docs/assets/flujo-acceso.puml`,
+  se renderizan a PNG y se embeben como imágenes (ver `docs/README.md`).
 - Imágenes: `docs/assets/`, referenciadas con rutas relativas.
 - No duplicar contenido: el informe referencia el código, no lo copia entero.
 

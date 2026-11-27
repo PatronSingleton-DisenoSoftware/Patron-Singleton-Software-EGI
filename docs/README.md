@@ -73,19 +73,19 @@ El repositorio ya es público y su enlace figura en la Sección III. El detalle 
 - Idioma: español.
 - Formato: Markdown (`.md`), codificación UTF-8.
 - Nombres de archivo en minúsculas, con prefijo numérico para mantener el orden de lectura.
-- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` (IntelliJ lo renderiza en la vista previa, sin plugins). El UML de la entrega está como imagen (`assets/uml-clases.png`) generada desde `assets/uml-clases.puml`; para regenerarla, ver las instrucciones del final de este archivo.
+- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` del informe de trabajo (IntelliJ lo renderiza en la vista previa, sin plugins). Las figuras del documento de entrega están como imágenes: `assets/uml-clases.png` (clases) y `assets/flujo-acceso.png` (secuencia), generadas desde sus `.puml`; para regenerarlas, ver las instrucciones del final de este archivo.
 - Imágenes y capturas: carpeta `docs/assets/` y referencia relativa desde el documento que las usa.
 - Código citado: bloques ```` ```java ```` con el lenguaje indicado.
 
-## Regenerar el diagrama UML (PNG)
+## Regenerar los diagramas (PNG)
 
-Fuente: `assets/uml-clases.puml`. Salida: `assets/uml-clases.png` (ya incluida en el
-documento de entrega).
+Fuentes: `assets/uml-clases.puml` y `assets/flujo-acceso.puml`. Salidas: los PNG del mismo
+nombre, ya incluidos en el documento de entrega.
 
 ### Opción A — IntelliJ IDEA (sin salir del IDE)
 
 1. `Settings → Plugins → Marketplace` → instalar **PlantUML Integration**.
-2. Abrir `docs/assets/uml-clases.puml`.
+2. Abrir `docs/assets/uml-clases.puml` o `docs/assets/flujo-acceso.puml`.
 3. Clic derecho en el editor → **Save diagram** (o el ícono de exportar de la barra de
    herramientas) → elegir PNG.
 
@@ -107,11 +107,11 @@ sensibles.
 # descargar una vez
 Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2024.7/plantuml-1.2024.7.jar" -OutFile plantuml.jar
 
-# renderizar (sin Graphviz, usa el layout Smetana)
-java '-Djava.awt.headless=true' -jar plantuml.jar -tpng '-Playout=smetana' docs\assets\uml-clases.puml -o docs\assets
+# renderizar ambos (sin Graphviz, usa el layout Smetana)
+java '-Djava.awt.headless=true' -jar plantuml.jar -tpng '-Playout=smetana' docs\assets\uml-clases.puml docs\assets\flujo-acceso.puml -o .
 ```
 
-Con Smetana el PNG se genera igual, pero el subrayado de `static` puede no verse. Para el
-PNG final conviene Graphviz (opciones A o B).
+`-o .` deja el PNG al lado de cada `.puml`. Con Smetana el subrayado de `static` puede no
+verse en el diagrama de clases; para el PNG final conviene Graphviz (opciones A o B).
 
-> El nombre del PNG lo toma de la línea `@startuml uml-clases`.
+> El nombre del PNG lo toma de la línea `@startuml …` de cada archivo.

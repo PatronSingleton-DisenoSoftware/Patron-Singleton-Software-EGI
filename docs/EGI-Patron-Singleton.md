@@ -146,8 +146,8 @@ requisito de seguridad. Esa es la justificación técnica que pide la Sección I
 miembros `static` aparecen subrayados; la visibilidad (`-` privado, `+` público) se
 muestra en cada miembro.*
 
-> La imagen está embebida en este documento, así que se incluye al exportar a PDF sin
-> depender de que el conversor renderice Mermaid.
+> Las figuras 1 y 2 están embebidas como imágenes, así que se incluyen al exportar a PDF
+> sin depender de que el conversor renderice Mermaid.
 
 ## 2.2. Roles del patrón Singleton
 
@@ -209,37 +209,9 @@ estado indica si el código de `main` ya las implementa.
 
 ## 2.5. Flujo previsto de un intento de ingreso
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor PA as Punto de acceso
-    participant CA as ControlAcceso
-    participant EM as Empleado
-    participant SE as Sector
-    participant RE as RegistroAcceso
+![Figura 2. Secuencia de un intento de ingreso](assets/flujo-acceso.png)
 
-    PA->>CA: getInstance()
-    CA-->>PA: instancia única
-    PA->>CA: verificarAcceso(numEmpleado, numSector)
-    activate CA
-    CA->>CA: buscar empleado y sector
-    CA->>EM: getNivelAcceso()
-    EM-->>CA: nivel
-    CA->>SE: getNivelRequerido()
-    SE-->>CA: nivelRequerido
-    alt nivel suficiente (orden del enum)
-        CA->>CA: autorizado = true
-    else permiso especial activo
-        CA->>CA: autorizado = true
-    else
-        CA->>CA: autorizado = false, motivo
-    end
-    CA->>RE: new RegistroAcceso(empleado, sector, autorizado, motivo)
-    CA-->>PA: resultado
-    deactivate CA
-    PA->>CA: consultarHistorial()
-    CA-->>PA: List<RegistroAcceso> (copia defensiva)
-```
+*Fuente editable del diagrama: [`assets/flujo-acceso.puml`](assets/flujo-acceso.puml).*
 
 ---
 
