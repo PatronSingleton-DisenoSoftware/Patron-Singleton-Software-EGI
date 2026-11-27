@@ -141,7 +141,9 @@ Mantener actualizado `docs/informe/07-conclusiones.md` y el
   de entrega se mantienen en `docs/assets/uml-clases.puml` y `docs/assets/flujo-acceso.puml`,
   se renderizan a PNG y se embeben como imágenes (ver `docs/README.md`).
 - Imágenes: `docs/assets/`, referenciadas con rutas relativas.
-- No duplicar contenido: el informe referencia el código, no lo copia entero.
+- No duplicar contenido: el informe referencia el código, no lo copia entero. **Excepción:**
+  el documento de entrega incluye el Anexo B con las siete clases completas de `src/`. Si
+  cambia una clase, actualizar también ese anexo para que no se desincronice.
 
 ## Git
 

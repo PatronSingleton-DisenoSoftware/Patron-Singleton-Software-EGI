@@ -18,7 +18,9 @@ secciones obligatorias de la consigna, en orden.
 | IV. Análisis crítico y principios SOLID | `EGI-Patron-Singleton.md` §IV |
 
 Los capítulos de `informe/` son la **versión extendida de trabajo** (más detalle del que
-pide la consigna). Si hay diferencias, manda el documento de entrega.
+pide la consigna). Si hay diferencias, manda el documento de entrega. El Anexo B de ese
+documento reproduce el código completo de `src/`; al modificar una clase hay que
+actualizar también ese anexo.
 
 ## Índice de la documentación de trabajo
 
