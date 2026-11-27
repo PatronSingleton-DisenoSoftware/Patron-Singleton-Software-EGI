@@ -1,4 +1,4 @@
-public class Sector {
+public final class Sector {
     private int idSector;
     private String nombre;
     private NivelAcceso nivelRequerido;
@@ -12,6 +12,13 @@ public class Sector {
         setIdSector(idSector);
         setNombre(nombre);
         setNivelRequerido(nivelRequerido);
+    }
+
+    // Comprueba que el sector tenga los datos minimos para registrarse.
+    public boolean datosValidos() {
+        return idSector > 0
+                && nombre != null && !nombre.trim().isEmpty()
+                && nivelRequerido != null;
     }
 
     public String getNombre() {

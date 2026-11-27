@@ -1,7 +1,7 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class RegistroAcceso {
+public final class RegistroAcceso {
     private static final DateTimeFormatter FORMATO_FECHA_HORA =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -65,7 +65,7 @@ public class RegistroAcceso {
         if (motivo == null || motivo.isBlank()) {
             throw new IllegalArgumentException("El motivo del registro no puede estar vacio");
         }
-        this.motivo = motivo;
+        this.motivo = motivo.trim();
     }
 
     @Override
