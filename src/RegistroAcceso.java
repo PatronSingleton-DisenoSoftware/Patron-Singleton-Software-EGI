@@ -14,7 +14,7 @@ public class RegistroAcceso {
 
     public RegistroAcceso(Empleado empleado, Sector sector, boolean autorizado, String motivo){
         // empleado y sector pueden ser null si el intento se hizo con una
-        // identificacion que no existe; el motivo explica el rechazo.
+        // ID que no existe; el motivo explica el rechazo.
         this.empleado = empleado;
         this.sector = sector;
         this.autorizado = autorizado;
@@ -74,10 +74,10 @@ public class RegistroAcceso {
         String nombreEmpleado = (getEmpleado() == null)
                 ? "Empleado no registrado"
                 : getEmpleado().getNombre() + " " + getEmpleado().getApellido()
-                        + " (ID " + getEmpleado().getIdentificacion() + ")";
+                        + " (ID " + getEmpleado().getIdEmpleado() + ")";
         String nombreSector = (getSector() == null)
                 ? "Sector inexistente"
-                : getSector().getNombre() + " (ID " + getSector().getIdS() + ")";
+                : getSector().getNombre() + " (ID " + getSector().getIdSector() + ")";
         String resultado = isAutorizado() ? "AUTORIZADO" : "DENEGADO";
 
         return getFechaHora().format(FORMATO_FECHA_HORA) + " | "

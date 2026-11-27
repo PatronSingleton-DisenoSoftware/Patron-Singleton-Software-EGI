@@ -30,7 +30,7 @@ Empleado empleado = new Empleado(1, 30111222, "Ana", "Gómez", NivelAcceso.NIVEL
 System.out.println(empleado.getNombre());         // Ana
 System.out.println(empleado.getApellido());       // Gómez
 System.out.println(empleado.getDni());            // 30111222
-System.out.println(empleado.getIdentificacion()); // 1
+System.out.println(empleado.getIdEmpleado()); // 1
 System.out.println(empleado.getNivelAcesso());    // NIVEL_2
 ```
 

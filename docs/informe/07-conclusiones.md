@@ -18,11 +18,11 @@ Estado al cierre de esta versión:
 | Componente | Estado |
 |------------|--------|
 | `ControlAcceso` | ✅ Estructura Singleton completa, lógica de validaciones, verificación de accesos e historial con copia defensiva |
-| `Empleado` | ✅ 5 atributos, constructor, getters, setter de nivel y `toString()`; typo `nivelAcesso` conservado |
-| `Sector` | ✅ 3 atributos, constructor parametrizado, getters y setters |
+| `Empleado` | ✅ 6 atributos (incluye `registroValido`), constructor con validación, getters, setters y `toString()` |
+| `Sector` | ✅ 3 atributos, constructor que valida vía setters, getters, setters y `toString()`; `idSector` (ADR-04) |
 | `Permiso` | ✅ 4 atributos, constructor, getters, setters y `revocar()` funcional |
 | `RegistroAcceso` | ✅ 5 atributos, constructor con `LocalDateTime.now()`, getters, setters y `toString()` |
-| `NivelAcceso` (enum) | ✅ 5 niveles evaluados mediante `ordinal()` para jerarquía acumulativa |
+| `NivelAcceso` (enum) | ✅ 5 niveles con valor numérico y `alcanzaA()` para jerarquía acumulativa |
 | `TipoPermiso` (enum) | ❌ No existe: se utiliza `boolean especial` |
 | `Main` | ✅ Interactivo por consola, conectado a la instancia Singleton |
 | Compilación | ✅ Sin errores ni advertencias |
@@ -37,10 +37,10 @@ El diseño se registró antes de programar con ocho decisiones en
 
 | ADR | Decisión | Por qué | Estado en el código |
 |-----|----------|---------|---------------------|
-| ADR-01 | `NivelAcceso` como enum | Evita niveles inválidos y centraliza el "alcanza a". | ⚠️ Parcial: evaluado por `ordinal()` |
+| ADR-01 | `NivelAcceso` como enum | Evita niveles inválidos y centraliza el "alcanza a". | ✅ Aplicado: enum con valor numérico y `alcanzaA()` |
 | ADR-02 | `TipoPermiso` como enum | `tipo` no tenía tipo y aceptaba cualquier valor. | ❌ No aplicado: `boolean especial` |
 | ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial. | ✅ Aplicado: asignado en constructor |
-| ADR-04 | `Sector.identificacion` | Consistencia con `Empleado` y con las reglas. | ❌ No aplicado: sigue `idS` |
+| ADR-04 | `idEmpleado` / `idSector` | Nombres explícitos por entidad, en camelCase. | ✅ Aplicado: renombrado en código y UML |
 | ADR-05 | `permisos` en `ControlAcceso` | Sin esa colección la revocación no tendría dónde vivir. | ✅ Aplicado |
 | ADR-06 | Separar verificar de registrar | Evita mezclar consulta con efecto secundario. | ❌ No aplicado: flujo unificado en `verificarAcceso()` |
 | ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; riesgo documentado. | ✅ Aplicado |

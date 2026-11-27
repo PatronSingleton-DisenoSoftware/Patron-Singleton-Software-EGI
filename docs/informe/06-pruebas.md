@@ -24,7 +24,7 @@ El proyecto implementa la verificación funcional mediante la ejecución por con
 |----|-------|--------|--------------------|--------|
 | CP-05 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_2` | Autorizado | ✅ Verificado |
 | CP-06 | RN-01 | Empleado `NIVEL_2` → sector `NIVEL_4` | Rechazado, motivo "Nivel insuficiente" | ✅ Verificado |
-| CP-07 | RN-01 | Empleado `NIVEL_3` → sector `NIVEL_1` | Autorizado (niveles acumulativos por `ordinal()`) | ✅ Verificado |
+| CP-07 | RN-01 | Empleado `NIVEL_3` → sector `NIVEL_1` | Autorizado (niveles acumulativos por `getNivel()`) | ✅ Verificado |
 | CP-08 | RN-02 | Empleado `NIVEL_2` con permiso `especial = true` y `activo = true` → sector `NIVEL_4` | Autorizado por permiso especial | ✅ Verificado |
 | CP-09 | RN-03 | Mismo caso tras revocar el permiso | Rechazado, motivo "Nivel insuficiente" | ✅ Verificado |
 | CP-10 | RN-04 | Acceso permitido | `RegistroAcceso` con `autorizado = true` y `fechaHora` con `now()` | ✅ Verificado |
