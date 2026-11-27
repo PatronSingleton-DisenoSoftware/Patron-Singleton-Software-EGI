@@ -1,12 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class ControlAcceso {
+public final class ControlAcceso {
     // Atributos
-    private List<Empleado> empleados;
-    private List<Sector> sectores;
-    private List<Permiso>permisos;
-    private List <RegistroAcceso>registros;
+    private final List<Empleado> empleados;
+    private final List<Sector> sectores;
+    private final List<Permiso> permisos;
+    private final List<RegistroAcceso> registros;
     private static ControlAcceso instancia;
     private boolean mostrarMensajesRegistro = true;
 
@@ -71,6 +71,10 @@ public class ControlAcceso {
             System.out.println("Error, el ID del sector debe ser mayor a 0");
             return;
         }
+        if (!sector.datosValidos()){
+            System.out.println("Error, no se puede registrar un sector con datos invalidos");
+            return;
+        }
         // Un sector no se puede dar de alta dos veces
         if (buscarSector(sector.getIdSector()) != null){
             System.out.println("Ya existe un sector con ID " + sector.getIdSector());
@@ -104,33 +108,44 @@ public class ControlAcceso {
             System.out.println("Error, no puede cargar datos vacios");
             return;
         }
-        Empleado empleado = permiso.getEmpleado();
-        Sector sector = permiso.getSector();
+        Empleado empleadoRegistrado = buscarEmpleado(permiso.getEmpleado().getIdEmpleado());
+        Sector sectorRegistrado = buscarSector(permiso.getSector().getIdSector());
+
         // CP-12: el permiso necesita un empleado y un sector que ya existan
-        if (buscarEmpleado(empleado.getIdEmpleado()) == null){
-            System.out.println("No existe el empleado con ID " + empleado.getIdEmpleado()
+        if (empleadoRegistrado == null){
+            System.out.println("No existe el empleado con ID " + permiso.getEmpleado().getIdEmpleado()
                     + ". Permiso rechazado (CP-12)");
             return;
         }
-        if (buscarSector(sector.getIdSector()) == null){
-            System.out.println("No existe el sector con ID " + sector.getIdSector()
+        if (sectorRegistrado == null){
+            System.out.println("No existe el sector con ID " + permiso.getSector().getIdSector()
                     + ". Permiso rechazado (CP-12)");
             return;
         }
+
+        // Se guardan las referencias registradas, no las copias que traiga el cliente
+        permiso.setEmpleado(empleadoRegistrado);
+        permiso.setSector(sectorRegistrado);
+
         // Un mismo empleado y sector no se cargan dos veces
-        Permiso existente = buscarPermiso(empleado, sector);
+        Permiso existente = buscarPermiso(empleadoRegistrado, sectorRegistrado);
         if (existente != null && existente.estaActivo()){
             System.out.println("Ya existe un permiso activo para ese empleado y sector");
             return;
         }
         // Si estaba revocado, se vuelve a habilitar en vez de duplicar
         if (existente != null){
+            existente.setEmpleado(empleadoRegistrado);
+            existente.setSector(sectorRegistrado);
             existente.setActivo(true);
-            System.out.println("Permiso reactivado para " + empleado.getNombre() + " en " + sector.getNombre());
+            existente.setEspecial(permiso.esEspecial());
+            System.out.println("Permiso reactivado para " + empleadoRegistrado.getNombre()
+                    + " en " + sectorRegistrado.getNombre());
             return;
         }
         permisos.add(permiso);
-        System.out.println("Permiso concedido a " + empleado.getNombre() + " en " + sector.getNombre());
+        System.out.println("Permiso concedido a " + empleadoRegistrado.getNombre()
+                + " en " + sectorRegistrado.getNombre());
     }
 
     public void revocarPermiso(Permiso permiso){
@@ -150,8 +165,8 @@ public class ControlAcceso {
             return;
         }
         existente.revocar();
-        System.out.println("Permiso revocado a " + permiso.getEmpleado().getNombre()
-                + " en " + permiso.getSector().getNombre());
+        System.out.println("Permiso revocado a " + existente.getEmpleado().getNombre()
+                + " en " + existente.getSector().getNombre());
     }
 
     public boolean verificarAcceso(int numEmpleado, int numSector){
@@ -174,7 +189,7 @@ public class ControlAcceso {
         boolean autorizado = false;
         String motivo = null;
 
-        // 2. Verificar jerarquía de niveles (RN-01)
+        // 2. Verificar jerarquia de niveles (RN-01)
         if (empleado.getNivelAcceso() != null && empleado.getNivelAcceso().alcanzaA(sector.getNivelRequerido())) {
             autorizado = true;
             motivo = "Acceso autorizado por nivel";
@@ -270,7 +285,8 @@ public class ControlAcceso {
     private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) {
         for (Permiso p : this.permisos) {
             // Coincide empleado y sector, es especial y sigue activo
-            if (p.getEmpleado().getIdEmpleado() == empleado.getIdEmpleado()
+            if (p.getEmpleado() != null && p.getSector() != null
+                    && p.getEmpleado().getIdEmpleado() == empleado.getIdEmpleado()
                     && p.getSector().getIdSector() == sector.getIdSector()
                     && p.esEspecial()
                     && p.estaActivo()) {

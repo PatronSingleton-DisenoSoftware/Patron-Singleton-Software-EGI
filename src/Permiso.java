@@ -1,4 +1,4 @@
-public class Permiso {
+public final class Permiso {
     private Empleado empleado;
     private Sector sector;
     private boolean activo;
@@ -29,10 +29,18 @@ public class Permiso {
     }
 
     public void setEmpleado(Empleado empleado) {
+        if (empleado == null) {
+            System.out.println("Error: el empleado del permiso no puede ser nulo.");
+            return;
+        }
         this.empleado = empleado;
     }
 
     public void setSector(Sector sector) {
+        if (sector == null) {
+            System.out.println("Error: el sector del permiso no puede ser nulo.");
+            return;
+        }
         this.sector = sector;
     }
 

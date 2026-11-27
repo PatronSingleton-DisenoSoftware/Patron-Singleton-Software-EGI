@@ -1,4 +1,4 @@
-public class Empleado {
+public final class Empleado {
     private int idEmpleado;
     private int dni;
     private String nombre;
@@ -7,39 +7,32 @@ public class Empleado {
     private boolean registroValido;
 
     public Empleado(int idEmpleado, int dni, String nombre, String apellido, NivelAcceso nivelAcceso) {
-        boolean nombreValido = (nombre != null && !nombre.trim().equals(""));
-        boolean apellidoValido = (apellido != null && !apellido.trim().equals(""));
-        boolean dniValido = esDniValido(dni);
+        // Se guardan los datos primero: si algo es invalido, el objeto conserva
+        // lo que se intento cargar y resulta mas facil de inspeccionar.
+        this.idEmpleado = idEmpleado;
+        this.dni = dni;
+        this.nombre = (nombre == null) ? null : nombre.trim();
+        this.apellido = (apellido == null) ? null : apellido.trim();
+        this.nivelAcceso = (nivelAcceso == null) ? NivelAcceso.NIVEL_1 : nivelAcceso;
+        this.registroValido = false;
 
-        if (!nombreValido || !apellidoValido) {
-            this.registroValido = false;
+        if (this.nombre == null || this.nombre.isEmpty()
+                || this.apellido == null || this.apellido.isEmpty()) {
             System.out.println("No se puede registrar este empleado porque no tiene nombre o apellido.");
             return;
         }
 
-        if (!dniValido) {
-            this.registroValido = false;
+        if (!esDniValido(this.dni)) {
             System.out.println("No se puede registrar este empleado porque el DNI no tiene la cantidad de digitos valida (7 u 8 digitos).");
             return;
         }
 
-        if (idEmpleado <= 0) {
-            this.registroValido = false;
+        if (this.idEmpleado <= 0) {
             System.out.println("No se puede registrar este empleado porque el ID del empleado debe ser mayor a 0.");
             return;
         }
 
         this.registroValido = true;
-        this.idEmpleado = idEmpleado;
-        this.dni = dni;
-        this.nombre = nombre.trim();
-        this.apellido = apellido.trim();
-
-        if (nivelAcceso == null) {
-            this.nivelAcceso = NivelAcceso.NIVEL_1;
-        } else {
-            this.nivelAcceso = nivelAcceso;
-        }
     }
 
     public static boolean esDniValido(int dni) {
@@ -51,11 +44,21 @@ public class Empleado {
     }
 
     public boolean isRegistroValido() {
-        return registroValido;
+        return registroValido && datosValidos();
     }
 
     public void setRegistroValido(boolean registroValido) {
-        this.registroValido = registroValido;
+        // Un objeto solo queda marcado como valido si sus datos realmente lo son.
+        this.registroValido = registroValido && datosValidos();
+    }
+
+    // Recalcula la validez a partir de los datos actuales.
+    public boolean datosValidos() {
+        return idEmpleado > 0
+                && esDniValido(dni)
+                && nombre != null && !nombre.trim().isEmpty()
+                && apellido != null && !apellido.trim().isEmpty()
+                && nivelAcceso != null;
     }
 
     public int getDni() {

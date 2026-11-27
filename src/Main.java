@@ -3,7 +3,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    // Lee un entero como línea completa para poder rechazar entradas mezcladas o inválidas.
+    // Lee un entero como linea completa para poder rechazar entradas mezcladas o invalidas.
     private static int leerEntero(Scanner entradaDatos, String mensaje) {
         while (true) {
             System.out.print(mensaje);
@@ -150,7 +150,7 @@ public class Main {
             return;
         }
         for (Empleado emp : empleados) {
-            System.out.println("• " + emp);
+            System.out.println("- " + emp);
         }
     }
 
@@ -163,7 +163,7 @@ public class Main {
             return;
         }
         for (Sector sec : sectores) {
-            System.out.println("• " + sec);
+            System.out.println("- " + sec);
         }
     }
 
@@ -230,14 +230,14 @@ public class Main {
             return;
         }
         for (RegistroAcceso reg : historial) {
-            System.out.println("• " + reg);
+            System.out.println("- " + reg);
         }
     }
 
     // 9 - Demostracion automatica del patron Singleton y reglas de negocio
     public static void funcionDemostracionAutomatica(ControlAcceso control) {
         System.out.println("\n========================================================");
-        System.out.println("         DEMOBRACION AUTOMATICA DEL SISTEMA            ");
+        System.out.println("         DEMOSTRACION AUTOMATICA DEL SISTEMA            ");
         System.out.println("========================================================");
 
         // CP-01 y CP-02: Demostracion de unicidad de instancia
@@ -246,42 +246,51 @@ public class Main {
         ControlAcceso puerta2 = ControlAcceso.getInstance();
         System.out.println("    Puerta 1 referencia: " + puerta1);
         System.out.println("    Puerta 2 referencia: " + puerta2);
-        System.out.println("    ¿Son la misma instancia (puerta1 == puerta2)? " + (puerta1 == puerta2));
+        System.out.println("    Son la misma instancia (puerta1 == puerta2)? " + (puerta1 == puerta2));
 
         // Registro de datos de prueba
         System.out.println("\n[2] Registrando sectores y empleados de prueba:");
         // IDs propios de la demo: no se repiten con los datos precargados en main()
         Sector recepcion = new Sector(110, "Recepcion", NivelAcceso.NIVEL_1);
         Sector servidores = new Sector(120, "Sala de Servidores", NivelAcceso.NIVEL_4);
-        control.registrarSector(recepcion);
-        control.registrarSector(servidores);
+        // Solo se dan de alta si no existen, para poder repetir la demo.
+        if (control.buscarSector(110) == null) {
+            control.registrarSector(recepcion);
+        }
+        if (control.buscarSector(120) == null) {
+            control.registrarSector(servidores);
+        }
 
         Empleado ana = new Empleado(101, 40111222, "Ana", "Gomez", NivelAcceso.NIVEL_2);
         Empleado carlos = new Empleado(102, 35333444, "Carlos", "Lopez", NivelAcceso.NIVEL_4);
-        control.registrarEmpleado(ana);
-        control.registrarEmpleado(carlos);
+        if (control.buscarEmpleado(101) == null) {
+            control.registrarEmpleado(ana);
+        }
+        if (control.buscarEmpleado(102) == null) {
+            control.registrarEmpleado(carlos);
+        }
 
         // Verificaciones por nivel
         System.out.println("\n[3] Prueba de acceso por nivel acumulativo:");
-        System.out.println("    • Ana (ID 101, NIVEL_2) intenta entrar a Recepcion (ID 110, NIVEL_1):");
+        System.out.println("    - Ana (ID 101, NIVEL_2) intenta entrar a Recepcion (ID 110, NIVEL_1):");
         control.verificarAcceso(101, 110);
 
-        System.out.println("    • Ana (ID 101, NIVEL_2) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
+        System.out.println("    - Ana (ID 101, NIVEL_2) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
         control.verificarAcceso(101, 120);
 
-        System.out.println("    • Carlos (ID 102, NIVEL_4) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
+        System.out.println("    - Carlos (ID 102, NIVEL_4) intenta entrar a Sala de Servidores (ID 120, NIVEL_4):");
         control.verificarAcceso(102, 120);
 
         // Permiso especial y revocacion
         System.out.println("\n[4] Prueba de permiso especial y revocacion:");
-        System.out.println("    • Concediendo permiso especial a Ana (ID 101) para Sala de Servidores...");
+        System.out.println("    - Concediendo permiso especial a Ana (ID 101) para Sala de Servidores...");
         control.concederPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana (ID 101) intenta entrar nuevamente a Sala de Servidores:");
+        System.out.println("    - Ana (ID 101) intenta entrar nuevamente a Sala de Servidores:");
         control.verificarAcceso(101, 120);
 
-        System.out.println("    • Revocando permiso especial de Ana (ID 101)...");
+        System.out.println("    - Revocando permiso especial de Ana (ID 101)...");
         control.revocarPermiso(new Permiso(ana, servidores, true));
-        System.out.println("    • Ana (ID 101) intenta entrar tras la revocacion:");
+        System.out.println("    - Ana (ID 101) intenta entrar tras la revocacion:");
         control.verificarAcceso(101, 120);
 
         // Historial centralizado
@@ -372,7 +381,7 @@ public class Main {
                     break;
                 case 0:
                     salir = true;
-                    System.out.println("Cerrando sistema de control de acceso. ¡Hasta luego!");
+                    System.out.println("Cerrando sistema de control de acceso. Hasta luego!");
                     break;
                 default:
                     System.out.println("Opcion invalida. Intente nuevamente.");
