@@ -14,7 +14,7 @@ la decisión propuesta; la tabla siguiente indica cómo se refleja en el código
 | ADR-01 | `NivelAcceso` como enum | ✅ Aplicado | Enum con valor numérico y `alcanzaA()`; atributo `nivelAcceso` |
 | ADR-02 | `TipoPermiso` como enum | ❌ No aplicado | `Permiso.especial` es `boolean`; no existe `TipoPermiso.java` |
 | ADR-03 | `fechaHora` como `LocalDateTime` | ✅ Aplicado | `LocalDateTime.now()` asignado automáticamente en constructor |
-| ADR-04 | `Sector.identificacion` | ✅ Aplicado | Atributo, getter y setter renombrados |
+| ADR-04 | `idEmpleado` / `idSector` | ✅ Aplicado | Atributos y métodos renombrados en todo el código |
 | ADR-05 | `permisos` en `ControlAcceso` | ✅ Aplicado | `private List<Permiso> permisos` |
 | ADR-06 | Separar verificar de registrar | ❌ No aplicado | `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia |
 | ADR-07 | Singleton lazy sin `synchronized` | ✅ Aplicado | `getInstance()` crea la instancia en la primera llamada |
@@ -97,15 +97,29 @@ el constructor (`LocalDateTime.now()`), no quien lo crea.
 
 ---
 
-## ADR-04: `identificacion` en lugar de `idS`
+## ADR-04: identificadores `idEmpleado` / `idSector`
 
-**Contexto.** `Sector.idS` rompe la convención del proyecto (`Empleado.identificacion`,
-atributos descriptivos en minúscula) y mezcla abreviaturas con nombres completos.
+**Contexto.** El planteo original usaba `Sector.idS`, una abreviatura que rompía la
+convención de nombres descriptivos. Se evaluó `identificacion`, pero con dos
+identificadores enteros del mismo tipo (`Empleado` y `Sector`) era fácil confundirlos
+en firmas como `buscarSector(int)`.
 
-**Decisión.** `Sector.identificacion`.
+**Decisión.** `Empleado.idEmpleado` y `Sector.idSector`, con `getIdEmpleado()`,
+`setIdEmpleado()`, `getIdSector()` y `setIdSector()`.
 
-**Estado actual.** ✅ Aplicado: `Sector` usa `identificacion` con `getIdentificacion()` y
-`setIdentificacion()`, y el UML y la documentación se actualizaron en consecuencia.
+**Estado actual.** ✅ Aplicado en `src/`, en el UML y en la documentación.
+
+**Consecuencias.**
+
+- El nombre del atributo indica a qué entidad pertenece el identificador.
+- Se mantiene camelCase con minúscula inicial, como exige `Reglas-Proyecto.md`.
+- Los parámetros de búsqueda se llaman igual (`buscarEmpleado(int idEmpleado)` y
+  `buscarSector(int idSector)`), lo que evita confundir los dos enteros.
+
+**Alternativas descartadas.**
+
+- `Id_Empleado` / `Id_Sector`: viola la convención camelCase del proyecto.
+- `identificacion`: correcto, pero ambiguo al leer una firma con dos `int`.
 
 ---
 

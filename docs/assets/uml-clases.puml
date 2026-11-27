@@ -25,37 +25,37 @@ class ControlAcceso {
   +getEmpleados() : List<Empleado>
   +getSectores() : List<Sector>
   +getPermisos() : List<Permiso>
-  +buscarEmpleado(identificacion : int) : Empleado
-  +buscarSector(identificacion : int) : Sector
+  +buscarEmpleado(idEmpleado : int) : Empleado
+  +buscarSector(idSector : int) : Sector
   -buscarPermiso(empleado : Empleado, sector : Sector) : Permiso
   -tienePermisoEspecialActivo(empleado : Empleado, sector : Sector) : boolean
 }
 
 class Empleado {
-  -identificacion : int
+  -idEmpleado : int
   -dni : int
   -nombre : String
   -apellido : String
-  -nivelAcesso : NivelAcceso
-  +Empleado(identificacion : int, dni : int, nombre : String, apellido : String, nivelAcceso : NivelAcceso)
-  +getIdentificacion() : int
+  -nivelAcceso : NivelAcceso
+  +Empleado(idEmpleado : int, dni : int, nombre : String, apellido : String, nivelAcceso : NivelAcceso)
+  +getIdEmpleado() : int
   +getDni() : int
   +getNombre() : String
   +getApellido() : String
-  +getNivelAcesso() : NivelAcceso
-  +setNivelAcesso(nivelAcesso : NivelAcceso) : void
+  +getNivelAcceso() : NivelAcceso
+  +setNivelAcceso(nivelAcceso : NivelAcceso) : void
   +toString() : String
 }
 
 class Sector {
-  -identificacion : int
+  -idSector : int
   -nombre : String
   -nivelRequerido : NivelAcceso
-  +Sector(identificacion : int, nombre : String, nivelRequerido : NivelAcceso)
-  +getIdentificacion() : int
+  +Sector(idSector : int, nombre : String, nivelRequerido : NivelAcceso)
+  +getIdSector() : int
   +getNombre() : String
   +getNivelRequerido() : NivelAcceso
-  +setIdentificacion(identificacion : int) : void
+  +setIdSector(idSector : int) : void
   +setNombre(nombre : String) : void
   +setNivelRequerido(nivelRequerido : NivelAcceso) : void
   +toString() : String

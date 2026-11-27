@@ -62,15 +62,15 @@ public class Main {
     // 1 - Registrar empleado
     public static void funcionRegistrarEmpleado(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Empleado ---");
-        int identificacion = leerEntero(entradaDatos, "Identificacion (ID numerico): ");
+        int idEmpleado = leerEntero(entradaDatos, "ID del empleado: ");
 
-        if (identificacion <= 0) {
-            System.out.println("Error: La identificacion debe ser mayor a 0.");
+        if (idEmpleado <= 0) {
+            System.out.println("Error: El ID del empleado debe ser mayor a 0.");
             return;
         }
         // Evitar que coincida con el ID de un empleado
-        if (control.buscarEmpleado(identificacion) != null) {
-            System.out.println("Error: Ya existe un empleado con esa identificacion.");
+        if (control.buscarEmpleado(idEmpleado) != null) {
+            System.out.println("Error: Ya existe un empleado con ese ID.");
             return;
         }
 
@@ -110,7 +110,7 @@ public class Main {
 
         NivelAcceso nivelAcceso = leerNivelAcceso(entradaDatos);
 
-        Empleado empleado = new Empleado(identificacion, dni, nombre.trim(), apellido.trim(), nivelAcceso);
+        Empleado empleado = new Empleado(idEmpleado, dni, nombre.trim(), apellido.trim(), nivelAcceso);
         if (empleado.isRegistroValido()) {
             control.registrarEmpleado(empleado);
         }
@@ -119,15 +119,15 @@ public class Main {
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
-        int identificacion = leerEntero(entradaDatos, "ID del Sector: ");
+        int idSector = leerEntero(entradaDatos, "ID del Sector: ");
 
-        if (identificacion <= 0) {
+        if (idSector <= 0) {
             System.out.println("Error: El ID del sector debe ser mayor a 0.");
             return;
         }
 
         // Evitar que se repita el ID de otro sector
-        if (control.buscarSector(identificacion) != null) {
+        if (control.buscarSector(idSector) != null) {
             System.out.println("Error: Ya existe un sector con ese ID.");
             return;
         }
@@ -137,7 +137,7 @@ public class Main {
         System.out.println("Nivel minimo requerido para ingresar al sector:");
         NivelAcceso nivelRequerido = leerNivelAcceso(entradaDatos);
 
-        Sector sector = new Sector(identificacion, nombre, nivelRequerido);
+        Sector sector = new Sector(idSector, nombre, nivelRequerido);
         control.registrarSector(sector);
     }
 

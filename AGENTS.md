@@ -62,7 +62,7 @@ Fuente de verdad: [`Reglas-Proyecto.md`](Reglas-Proyecto.md). Resumen operativo:
 | Lenguaje | Java (sin frameworks, sin Maven/Gradle) |
 | Una clase por archivo | El archivo se llama igual que la clase |
 | Nombres de clase | Mayúscula inicial (`ControlAcceso`, `Empleado`) |
-| Nombres de atributos | Minúscula inicial, descriptivos (`identificacion`, no `id`) |
+| Nombres de atributos | Minúscula inicial, descriptivos (`idEmpleado`, no `id`) |
 | Encapsulamiento | Todos los atributos `private` |
 | Acceso a atributos | Siempre por getters y setters, nunca acceso directo |
 | Singleton | Atributo `private static`, constructor `private`, método `public static` de acceso |
@@ -104,7 +104,7 @@ No asumir que lo documentado está implementado. Estado actual (alineado con `ma
   con copia defensiva.
 - ✅ `Empleado`: 6 atributos privados (incluye `registroValido`), constructor con
   validación, getters, setters y `toString()`.
-- ✅ `Sector`: 3 atributos privados (`identificacion`, `nombre`, `nivelRequerido`),
+- ✅ `Sector`: 3 atributos privados (`idSector`, `nombre`, `nivelRequerido`),
   constructor que delega en los setters, getters, setters y `toString()`.
 - ✅ `Permiso`: `empleado`, `sector`, `activo`, `especial`, getters, setters y
   `revocar()` funcional.

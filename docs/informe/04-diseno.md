@@ -75,7 +75,7 @@ ingresar a los sectores del edificio.
 
 | Atributo | Tipo | Descripción |
 |----------|------|-------------|
-| `identificacion` | `private int` | Identificador único del empleado. |
+| `idEmpleado` | `private int` | Identificador único del empleado. |
 | `dni` | `private int` | Número de identidad. |
 | `nombre` | `private String` | Nombre. |
 | `apellido` | `private String` | Apellido. |
@@ -99,7 +99,7 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 
 | Atributo | Tipo | Descripción |
 |----------|------|-------------|
-| `identificacion` | `private int` | Identificador único del sector. |
+| `idSector` | `private int` | Identificador único del sector. |
 | `nombre` | `private String` | Nombre del sector. |
 | `nivelRequerido` | `private NivelAcceso` | Nivel mínimo necesario para ingresar. |
 
@@ -111,8 +111,8 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 
 > `Sector` dispone de constructor parametrizado, getters y setters para todos sus campos;
 > el constructor delega en los setters, de modo que valida con las mismas reglas. El
-> identificador se llama `identificacion`
-> ([ADR-04](09-decisiones.md#adr-04-identificacion-en-lugar-de-ids) aplicado).
+> identificador se llama `idSector`
+> ([ADR-04](09-decisiones.md#adr-04-identificadores-idempleado--idsector) aplicado).
 
 ## 4.5. `Permiso`
 
@@ -261,13 +261,13 @@ classDiagram
     }
 
     class Empleado {
-        -int identificacion
+        -int idEmpleado
         -int dni
         -String nombre
         -String apellido
         -NivelAcceso nivelAcceso
         +Empleado(int, int, String, String, NivelAcceso)
-        +int getIdentificacion()
+        +int getIdEmpleado()
         +int getDni()
         +String getNombre()
         +String getApellido()
@@ -277,14 +277,14 @@ classDiagram
     }
 
     class Sector {
-        -int identificacion
+        -int idSector
         -String nombre
         -NivelAcceso nivelRequerido
         +Sector(int, String, NivelAcceso)
-        +int getIdentificacion()
+        +int getIdSector()
         +String getNombre()
         +NivelAcceso getNivelRequerido()
-        +void setIdentificacion(int)
+        +void setIdSector(int)
         +void setNombre(String)
         +void setNivelRequerido(NivelAcceso)
         +String toString()
@@ -389,7 +389,7 @@ Resumen; el detalle con contexto y consecuencias está en
 | ADR-01 | `NivelAcceso` como enum con valor numérico, en lugar de `int`. | ✅ Aplicado: `alcanzaA()` compara por `getNivel()` |
 | ADR-02 | `TipoPermiso` como enum (`ESTANDAR`, `ESPECIAL`), en lugar de un `tipo` sin definir. | ❌ No aplicado: `boolean especial` |
 | ADR-03 | `fechaHora` como `LocalDateTime`, en lugar de `String`. | ✅ Aplicado: asignación con `LocalDateTime.now()` en constructor |
-| ADR-04 | `Sector.identificacion` en lugar de `idS`. | ✅ Aplicado: atributo, getter y setter renombrados |
+| ADR-04 | `idEmpleado` / `idSector` en lugar de `idS`. | ✅ Aplicado: atributos, getters y setters renombrados |
 | ADR-05 | La colección `permisos` vive en `ControlAcceso`. | ✅ Aplicado |
 | ADR-06 | Separar `verificarAcceso()` (consulta) de `registrarIntento()` (registro). | ❌ No aplicado: `verificarAcceso` realiza la verificación y el registro |
 | ADR-07 | Singleton lazy sin `synchronized`, por claridad didáctica. | ✅ Aplicado |

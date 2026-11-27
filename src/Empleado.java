@@ -1,12 +1,12 @@
 public class Empleado {
-    private int identificacion;
+    private int idEmpleado;
     private int dni;
     private String nombre;
     private String apellido;
     private NivelAcceso nivelAcceso;
     private boolean registroValido;
 
-    public Empleado(int identificacion, int dni, String nombre, String apellido, NivelAcceso nivelAcceso) {
+    public Empleado(int idEmpleado, int dni, String nombre, String apellido, NivelAcceso nivelAcceso) {
         boolean nombreValido = (nombre != null && !nombre.trim().equals(""));
         boolean apellidoValido = (apellido != null && !apellido.trim().equals(""));
         boolean dniValido = esDniValido(dni);
@@ -23,14 +23,14 @@ public class Empleado {
             return;
         }
 
-        if (identificacion <= 0) {
+        if (idEmpleado <= 0) {
             this.registroValido = false;
-            System.out.println("No se puede registrar este empleado porque la identificacion debe ser mayor a 0.");
+            System.out.println("No se puede registrar este empleado porque el ID del empleado debe ser mayor a 0.");
             return;
         }
 
         this.registroValido = true;
-        this.identificacion = identificacion;
+        this.idEmpleado = idEmpleado;
         this.dni = dni;
         this.nombre = nombre.trim();
         this.apellido = apellido.trim();
@@ -70,16 +70,16 @@ public class Empleado {
         this.dni = dni;
     }
 
-    public int getIdentificacion() {
-        return identificacion;
+    public int getIdEmpleado() {
+        return idEmpleado;
     }
 
-    public void setIdentificacion(int identificacion) {
-        if (identificacion <= 0) {
-            System.out.println("Error: la identificacion debe ser mayor a 0.");
+    public void setIdEmpleado(int idEmpleado) {
+        if (idEmpleado <= 0) {
+            System.out.println("Error: el ID del empleado debe ser mayor a 0.");
             return;
         }
-        this.identificacion = identificacion;
+        this.idEmpleado = idEmpleado;
     }
 
     public String getApellido() {
@@ -120,6 +120,6 @@ public class Empleado {
 
     @Override
     public String toString() {
-        return "Empleado [ID: " + identificacion + " | DNI: " + dni + " | Nombre: " + nombre + " " + apellido + " | Nivel: " + nivelAcceso + "]";
+        return "Empleado [ID: " + idEmpleado + " | DNI: " + dni + " | Nombre: " + nombre + " " + apellido + " | Nivel: " + nivelAcceso + "]";
     }
 }

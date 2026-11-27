@@ -41,13 +41,13 @@ public class ControlAcceso {
             System.out.println("Error, no se puede registrar un empleado con datos invalidos");
             return;
         }
-        if (empleado.getIdentificacion() <= 0) {
-            System.out.println("Error, la identificacion del empleado debe ser mayor a 0");
+        if (empleado.getIdEmpleado() <= 0) {
+            System.out.println("Error, el ID del empleado debe ser mayor a 0");
             return;
         }
-        // Un empleado no se puede dar de alta dos veces por identificacion
-        if (buscarEmpleado(empleado.getIdentificacion()) != null){
-            System.out.println("Ya existe un empleado con identificacion " + empleado.getIdentificacion());
+        // Un empleado no se puede dar de alta dos veces por ID
+        if (buscarEmpleado(empleado.getIdEmpleado()) != null){
+            System.out.println("Ya existe un empleado con ID " + empleado.getIdEmpleado());
             return;   // no se agrega
         }
         // Tampoco por DNI
@@ -67,13 +67,13 @@ public class ControlAcceso {
             System.out.println("Error, no puede cargar datos vacios");
             return;
         }
-        if (sector.getIdentificacion() <= 0){
+        if (sector.getIdSector() <= 0){
             System.out.println("Error, el ID del sector debe ser mayor a 0");
             return;
         }
         // Un sector no se puede dar de alta dos veces
-        if (buscarSector(sector.getIdentificacion()) != null){
-            System.out.println("Ya existe un sector con identificacion " + sector.getIdentificacion());
+        if (buscarSector(sector.getIdSector()) != null){
+            System.out.println("Ya existe un sector con ID " + sector.getIdSector());
             return;   // no se agrega
         }
         sectores.add(sector);
@@ -89,9 +89,9 @@ public class ControlAcceso {
             return;
         }
         // Solo se le asigna nivel a un empleado ya registrado
-        Empleado registrado = buscarEmpleado(empleado.getIdentificacion());
+        Empleado registrado = buscarEmpleado(empleado.getIdEmpleado());
         if (registrado == null){
-            System.out.println("No existe un empleado con identificacion " + empleado.getIdentificacion());
+            System.out.println("No existe un empleado con ID " + empleado.getIdEmpleado());
             return;
         }
         registrado.setNivelAcceso(nivelAcceso);
@@ -107,13 +107,13 @@ public class ControlAcceso {
         Empleado empleado = permiso.getEmpleado();
         Sector sector = permiso.getSector();
         // CP-12: el permiso necesita un empleado y un sector que ya existan
-        if (buscarEmpleado(empleado.getIdentificacion()) == null){
-            System.out.println("No existe el empleado con identificacion " + empleado.getIdentificacion()
+        if (buscarEmpleado(empleado.getIdEmpleado()) == null){
+            System.out.println("No existe el empleado con ID " + empleado.getIdEmpleado()
                     + ". Permiso rechazado (CP-12)");
             return;
         }
-        if (buscarSector(sector.getIdentificacion()) == null){
-            System.out.println("No existe el sector con identificacion " + sector.getIdentificacion()
+        if (buscarSector(sector.getIdSector()) == null){
+            System.out.println("No existe el sector con ID " + sector.getIdSector()
                     + ". Permiso rechazado (CP-12)");
             return;
         }
@@ -229,9 +229,9 @@ public class ControlAcceso {
     }
 
     // --- Ayudantes -------
-    public Empleado buscarEmpleado(int identificacion){
+    public Empleado buscarEmpleado(int idEmpleado){
         for (Empleado emp : this.empleados){
-            if (emp.getIdentificacion() == identificacion){
+            if (emp.getIdEmpleado() == idEmpleado){
                 return emp;
             }
         }
@@ -247,9 +247,9 @@ public class ControlAcceso {
         return null;
     }
 
-    public Sector buscarSector(int identificacion){
+    public Sector buscarSector(int idSector){
         for (Sector sec : this.sectores){
-            if (sec.getIdentificacion() == identificacion){
+            if (sec.getIdSector() == idSector){
                 return sec;
             }
         }
@@ -259,8 +259,8 @@ public class ControlAcceso {
     private Permiso buscarPermiso(Empleado empleado, Sector sector){
         for (Permiso permiso : permisos){
             if (permiso.getEmpleado() != null && permiso.getSector() != null
-                    && permiso.getEmpleado().getIdentificacion() == empleado.getIdentificacion()
-                    && permiso.getSector().getIdentificacion() == sector.getIdentificacion()){
+                    && permiso.getEmpleado().getIdEmpleado() == empleado.getIdEmpleado()
+                    && permiso.getSector().getIdSector() == sector.getIdSector()){
                 return permiso;
             }
         }
@@ -270,8 +270,8 @@ public class ControlAcceso {
     private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) {
         for (Permiso p : this.permisos) {
             // Coincide empleado y sector, es especial y sigue activo
-            if (p.getEmpleado().getIdentificacion() == empleado.getIdentificacion()
-                    && p.getSector().getIdentificacion() == sector.getIdentificacion()
+            if (p.getEmpleado().getIdEmpleado() == empleado.getIdEmpleado()
+                    && p.getSector().getIdSector() == sector.getIdSector()
                     && p.esEspecial()
                     && p.estaActivo()) {
                 return true;

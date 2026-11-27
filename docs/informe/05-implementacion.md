@@ -72,8 +72,8 @@ public class ControlAcceso {
     }
 
     // Metodos auxiliares
-    public Empleado buscarEmpleado(int identificacion) { /* ... */ }
-    public Sector buscarSector(int identificacion) { /* ... */ }
+    public Empleado buscarEmpleado(int idEmpleado) { /* ... */ }
+    public Sector buscarSector(int idSector) { /* ... */ }
     private Permiso buscarPermiso(Empleado empleado, Sector sector) { /* ... */ }
     private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) { /* ... */ }
 }
@@ -110,22 +110,22 @@ Código actual (`src/Empleado.java`):
 
 ```java
 public class Empleado {
-    private int identificacion;
+    private int idEmpleado;
     private int dni;
     private String nombre;
     private String apellido;
     private NivelAcceso nivelAcceso;
 
-    public Empleado(int identificacion, int dni, String nombre, String apellido,
+    public Empleado(int idEmpleado, int dni, String nombre, String apellido,
                     NivelAcceso nivelAcceso) {
-        this.identificacion = identificacion;
+        this.idEmpleado = idEmpleado;
         this.dni = dni;
         this.nombre = nombre;
         this.apellido = apellido;
         this.nivelAcceso = nivelAcceso;
     }
 
-    public int getIdentificacion() { return identificacion; }
+    public int getIdEmpleado() { return idEmpleado; }
     public int getDni() { return dni; }
     public String getNombre() { return nombre; }
     public String getApellido() { return apellido; }
@@ -141,28 +141,28 @@ public class Empleado {
 
 ```java
 public class Sector {
-    private int identificacion;
+    private int idSector;
     private String nombre;
     private NivelAcceso nivelRequerido;
 
-    public Sector(int identificacion, String nombre, NivelAcceso nivelRequerido) {
+    public Sector(int idSector, String nombre, NivelAcceso nivelRequerido) {
         // Parte de valores seguros y delega en los setters:
         // constructor y setters aplican la misma regla de validación.
-        this.identificacion = 0;
+        this.idSector = 0;
         this.nombre = "";
         this.nivelRequerido = NivelAcceso.NIVEL_1;
-        setIdentificacion(identificacion);
+        setIdSector(idSector);
         setNombre(nombre);
         setNivelRequerido(nivelRequerido);
     }
 
-    public int getIdentificacion() { return identificacion; }
+    public int getIdSector() { return idSector; }
     public String getNombre() { return nombre; }
     public NivelAcceso getNivelRequerido() { return nivelRequerido; }
 
-    public void setIdentificacion(int identificacion) {
-        if (identificacion <= 0) { /* avisa y conserva el valor anterior */ return; }
-        this.identificacion = identificacion;
+    public void setIdSector(int idSector) {
+        if (idSector <= 0) { /* avisa y conserva el valor anterior */ return; }
+        this.idSector = idSector;
     }
     public void setNombre(String nombre) { /* valida no vacío y recorta */ }
     public void setNivelRequerido(NivelAcceso nivelRequerido) { /* valida no nulo */ }
@@ -171,7 +171,7 @@ public class Sector {
 ```
 
 Dispone de constructor con parámetros, getters y setters para todos sus campos; el
-constructor valida a través de los setters. El identificador se llama `identificacion`
+constructor valida a través de los setters. El identificador se llama `idSector`
 (ADR-04 aplicado).
 
 ### `Permiso`
@@ -287,7 +287,7 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | Registro del intento | Se genera automáticamente en `verificarAcceso` | ✅ |
 | Historial | `consultarHistorial()` devuelve `List<RegistroAcceso>` (copia defensiva) | ✅ |
 | `Empleado` | 6 atributos (incluye `registroValido`), constructor con validación, getters, setters y `toString()` | ✅ |
-| `Sector` | `identificacion`, constructor que valida vía setters, getters, setters y `toString()` | ✅ |
+| `Sector` | `idSector`, constructor que valida vía setters, getters, setters y `toString()` | ✅ |
 | `Permiso` | `boolean especial`, constructor, setters y `revocar()` funcional | ✅ |
 | `RegistroAcceso` | `LocalDateTime.now()`, getters, setters y `toString()` | ✅ |
 | `NivelAcceso` | Enum `NIVEL_1`…`NIVEL_5` con valor numérico y `alcanzaA()` | ✅ |
@@ -306,8 +306,8 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | Revocar permiso | `void revocarPermiso(Permiso permiso)` | RN-03: baja lógica | ✅ Implementado |
 | Verificar acceso | `boolean verificarAcceso(int numEmpleado, int numSector)` | RN-01, RN-02, RN-04, RN-05 | ✅ Implementado |
 | Consultar historial | `List<RegistroAcceso> consultarHistorial()` | Copia defensiva de intentos | ✅ Implementado |
-| Buscar empleado | `Empleado buscarEmpleado(int identificacion)` | Auxiliar de verificación | ✅ Implementado |
-| Buscar sector | `Sector buscarSector(int identificacion)` | Auxiliar de verificación | ✅ Implementado |
+| Buscar empleado | `Empleado buscarEmpleado(int idEmpleado)` | Auxiliar de verificación | ✅ Implementado |
+| Buscar sector | `Sector buscarSector(int idSector)` | Auxiliar de verificación | ✅ Implementado |
 | Buscar permiso | `Permiso buscarPermiso(Empleado, Sector)` | Reutilizado por conceder/revocar/verificar | ✅ Implementado |
 | Permiso especial activo | `boolean tienePermisoEspecialActivo(Empleado, Sector)` | RN-02 | ✅ Implementado |
 
@@ -319,7 +319,7 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | Una clase por archivo | ✅ |
 | Clases con mayúscula inicial | ✅ |
 | Atributos en minúscula | ✅ |
-| Nombres de atributos claros | ✅ `nivelAcceso` y `identificacion` (ADR-04 aplicado) |
+| Nombres de atributos claros | ✅ `nivelAcceso`, `idEmpleado` e `idSector` (ADR-04 aplicado) |
 | Atributo estático privado (Singleton) | ✅ |
 | Constructor privado (Singleton) | ✅ |
 | Método público de instancia (Singleton) | ✅ (`getInstance()`) |

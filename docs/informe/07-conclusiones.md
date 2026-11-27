@@ -19,7 +19,7 @@ Estado al cierre de esta versión:
 |------------|--------|
 | `ControlAcceso` | ✅ Estructura Singleton completa, lógica de validaciones, verificación de accesos e historial con copia defensiva |
 | `Empleado` | ✅ 6 atributos (incluye `registroValido`), constructor con validación, getters, setters y `toString()` |
-| `Sector` | ✅ 3 atributos, constructor que valida vía setters, getters, setters y `toString()`; `identificacion` (ADR-04) |
+| `Sector` | ✅ 3 atributos, constructor que valida vía setters, getters, setters y `toString()`; `idSector` (ADR-04) |
 | `Permiso` | ✅ 4 atributos, constructor, getters, setters y `revocar()` funcional |
 | `RegistroAcceso` | ✅ 5 atributos, constructor con `LocalDateTime.now()`, getters, setters y `toString()` |
 | `NivelAcceso` (enum) | ✅ 5 niveles con valor numérico y `alcanzaA()` para jerarquía acumulativa |
@@ -40,7 +40,7 @@ El diseño se registró antes de programar con ocho decisiones en
 | ADR-01 | `NivelAcceso` como enum | Evita niveles inválidos y centraliza el "alcanza a". | ✅ Aplicado: enum con valor numérico y `alcanzaA()` |
 | ADR-02 | `TipoPermiso` como enum | `tipo` no tenía tipo y aceptaba cualquier valor. | ❌ No aplicado: `boolean especial` |
 | ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial. | ✅ Aplicado: asignado en constructor |
-| ADR-04 | `Sector.identificacion` | Consistencia con `Empleado` y con las reglas. | ✅ Aplicado: renombrado en código y UML |
+| ADR-04 | `idEmpleado` / `idSector` | Nombres explícitos por entidad, en camelCase. | ✅ Aplicado: renombrado en código y UML |
 | ADR-05 | `permisos` en `ControlAcceso` | Sin esa colección la revocación no tendría dónde vivir. | ✅ Aplicado |
 | ADR-06 | Separar verificar de registrar | Evita mezclar consulta con efecto secundario. | ❌ No aplicado: flujo unificado en `verificarAcceso()` |
 | ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; riesgo documentado. | ✅ Aplicado |

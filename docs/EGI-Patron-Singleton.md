@@ -174,8 +174,8 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 | Clase | Atributos clave | Responsabilidad |
 |-------|-----------------|-----------------|
 | `ControlAcceso` | `instancia`, `empleados`, `sectores`, `permisos`, `registros` | Fuente única de verdad: altas, niveles, permisos, verificación y consulta. |
-| `Empleado` | `identificacion`, `dni`, `nombre`, `apellido`, `nivelAcceso` | Datos del empleado y su nivel. |
-| `Sector` | `identificacion`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
+| `Empleado` | `idEmpleado`, `dni`, `nombre`, `apellido`, `nivelAcceso` | Datos del empleado y su nivel. |
+| `Sector` | `idSector`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
 | `Permiso` | `empleado`, `sector`, `activo`, `especial` | Relación empleado–sector, con baja lógica. |
 | `RegistroAcceso` | `empleado`, `sector`, `fechaHora`, `autorizado`, `motivo` | Evidencia del intento, para auditoría. |
 | `NivelAcceso` | `NIVEL_1` … `NIVEL_5` | Niveles acumulativos, en el orden en que se declaran. |
@@ -183,7 +183,7 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 
 > **Nombres tal como están en el código.** El diagrama y estas tablas usan los
 > identificadores reales de `src/` en `main`, incluidos `getInstance()`, `nivelAcceso`,
-> `identificacion` y `especial`. Las brechas que aún quedan frente a los ADR
+> `idEmpleado`, `idSector` y `especial`. Las brechas que aún quedan frente a los ADR
 > (`boolean especial` y `verificarAcceso` que registra) están documentadas en el
 > [Anexo](#anexo-decisiones-de-diseño) y en [`informe/05-implementacion.md`](informe/05-implementacion.md#55-brecha-entre-diseño-e-implementación).
 
@@ -511,7 +511,7 @@ Decisiones tomadas antes de programar, con el estado real de aplicación en el c
 | ADR-01 | `NivelAcceso` como enum con valor numérico | Evita niveles inválidos y centraliza la comparación acumulativa. | ✅ Aplicado: enum con `NIVEL_1`…`NIVEL_5` y `alcanzaA()` por `getNivel()`. |
 | ADR-02 | `TipoPermiso` como enum | El atributo `tipo` no tenía tipo definido. | ❌ No aplicado: se usa `boolean especial`; `TipoPermiso.java` no existe. |
 | ADR-03 | `fechaHora` como `LocalDateTime` | Permite ordenar y filtrar el historial sin parsear texto. | ✅ Aplicado: asignado automáticamente en constructor con `LocalDateTime.now()`. |
-| ADR-04 | `Sector.identificacion` en lugar de `idS` | Consistencia de nombres con `Empleado`. | ✅ Aplicado: atributo, getter y setter renombrados. |
+| ADR-04 | `idEmpleado` / `idSector` en lugar de `idS` | Nombres explícitos por entidad y consistentes con la convención. | ✅ Aplicado: atributos, getters y setters renombrados. |
 | ADR-05 | La colección `permisos` vive en `ControlAcceso` | Sin ella, conceder y revocar no tendrían un único lugar donde persistir. | ✅ Aplicado: `private List<Permiso> permisos`. |
 | ADR-06 | `verificarAcceso()` no registra; `registrarIntento()` sí | Separa consulta de efecto secundario. | ❌ No aplicado: `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia. |
 | ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; el riesgo multihilo se documenta en §4.3. | ✅ Aplicado: `getInstance()` crea la instancia en la primera llamada. |
