@@ -64,7 +64,7 @@ operando en simultáneo esto es relevante. Alternativas, de menor a mayor robust
 1. Incorporar pruebas automáticas con JUnit 5.
 2. Evaluar una variante thread-safe del Singleton (ADR-07).
 3. Desarrollar persistencia externa (base de datos o archivos) para mantener el historial entre ejecuciones.
-4. Agregar una opción de menú para `asignarNivel()` y copias profundas en los getters de colecciones.
+4. Incorporar copias profundas en los getters de colecciones.
 5. Exportar el documento de entrega a PDF.
 
 ---

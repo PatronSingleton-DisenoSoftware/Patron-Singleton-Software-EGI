@@ -234,6 +234,22 @@ public class Main {
         }
     }
 
+    // 10 - Asignar nivel de acceso a un empleado ya registrado
+    public static void funcionAsignarNivel(Scanner entradaDatos, ControlAcceso control) {
+        System.out.println("\n--- Asignar Nivel de Acceso ---");
+        int idEmpleado = leerEntero(entradaDatos, "ID del Empleado: ");
+
+        Empleado empleado = control.buscarEmpleado(idEmpleado);
+        if (empleado == null) {
+            System.out.println("Error: No se encontro ningun empleado con ID " + idEmpleado);
+            return;
+        }
+
+        System.out.println("Nivel actual de " + empleado.getNombre() + ": " + empleado.getNivelAcceso());
+        NivelAcceso nivelAcceso = leerNivelAcceso(entradaDatos);
+        control.asignarNivel(empleado, nivelAcceso);
+    }
+
     // 9 - Demostracion automatica del patron Singleton y reglas de negocio
     public static void funcionDemostracionAutomatica(ControlAcceso control) {
         System.out.println("\n========================================================");
@@ -348,6 +364,7 @@ public class Main {
             System.out.println("7 - Simular punto de acceso (verificar acceso)");
             System.out.println("8 - Consultar historial de accesos");
             System.out.println("9 - Ejecutar demostracion automatica completa");
+            System.out.println("10 - Asignar nivel de acceso a un empleado");
             System.out.println("0 - Salir");
             int opcion = leerEntero(entradaDatos, "Seleccione una opcion: ");
 
@@ -378,6 +395,9 @@ public class Main {
                     break;
                 case 9:
                     funcionDemostracionAutomatica(control);
+                    break;
+                case 10:
+                    funcionAsignarNivel(entradaDatos, control);
                     break;
                 case 0:
                     salir = true;

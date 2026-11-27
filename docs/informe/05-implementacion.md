@@ -407,7 +407,8 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 
 `Main.java` implementa un menú interactivo por consola que permite dar de alta empleados
 con validación de nivel, registrar sectores, conceder y revocar permisos, verificar
-accesos y consultar el historial, todo contra la instancia única de `ControlAcceso`.
+accesos, consultar el historial y reasignar el nivel de un empleado ya registrado
+(opción 10), todo contra la instancia única de `ControlAcceso`.
 
 La opción 9 ejecuta `funcionDemostracionAutomatica(ControlAcceso)`: compara dos llamadas a
 `getInstance()`, registra datos de prueba solo si no existen y recorre el flujo de nivel,
@@ -432,7 +433,7 @@ duplicar datos.
 | `RegistroAcceso` | `LocalDateTime.now()`, getters, setters con validación de fecha/motivo y `toString()` | ✅ |
 | `NivelAcceso` | Enum `NIVEL_1`…`NIVEL_5` con valor numérico y `alcanzaA()` | ✅ |
 | `TipoPermiso` | No existe (se usa `boolean especial`) | ❌ |
-| `Main` interactivo | Menú por consola más demostración automática idempotente | ✅ |
+| `Main` interactivo | Menú por consola con demostración automática idempotente y opción para asignar nivel | ✅ |
 | Clases del dominio | `final` en `ControlAcceso`, `Empleado`, `Sector`, `Permiso` y `RegistroAcceso` | ✅ |
 
 ## 5.6. Plan de métodos de `ControlAcceso`

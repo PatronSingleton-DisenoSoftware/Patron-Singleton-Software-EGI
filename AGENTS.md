@@ -117,7 +117,8 @@ No asumir que lo documentado está implementado. Estado actual (alineado con `ma
   validación de fecha y motivo, y `toString()` legible.
 - ✅ `NivelAcceso`: enum `NIVEL_1` … `NIVEL_5` con valor numérico y `alcanzaA()`.
 - ❌ `TipoPermiso`: no existe (se usa `boolean especial`).
-- ✅ `Main`: menú interactivo por consola más demostración automática idempotente.
+- ✅ `Main`: menú interactivo por consola con demostración automática idempotente y
+  opción 10 para reasignar el nivel de un empleado registrado.
 - ✅ Las cinco clases del dominio son `final` (ADR-09).
 - ✅ El proyecto compila con `javac -Xlint:all` sin errores ni advertencias.
 

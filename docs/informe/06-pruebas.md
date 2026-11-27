@@ -38,6 +38,8 @@ El proyecto implementa la verificación funcional mediante la ejecución por con
 | CP-18 | RN-07 | Conceder un permiso usando copias distintas de un empleado y un sector ya registrados | El permiso guarda las referencias registradas y `buscarPermiso()` lo encuentra | ✅ Verificado |
 | CP-19 | Demostración | Ejecutar la opción 9 dos veces seguidas | No se duplican datos ni aparecen avisos de "Ya existe" | ✅ Verificado |
 | CP-20 | Consistencia | Acceso con empleado o sector inexistente | Se registra el intento con `null` en el dato faltante y motivo descriptivo | ✅ Verificado |
+| CP-21 | Nivel | Asignar `NIVEL_5` a un empleado registrado por la opción 10 del menú | Se actualiza el nivel y el cambio impacta en la próxima verificación | ✅ Verificado |
+| CP-22 | Nivel | Intentar asignar nivel a un ID inexistente | Operación rechazada con aviso; no se modifica ningún empleado | ✅ Verificado |
 
 ### Compilación
 

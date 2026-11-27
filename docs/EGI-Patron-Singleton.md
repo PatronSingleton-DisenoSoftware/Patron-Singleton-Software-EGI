@@ -391,6 +391,10 @@ varias veces sobre la misma instancia sin duplicar datos ni imprimir avisos de "
 La carga inicial de `main()` silencia los mensajes de registro con
 `setMostrarMensajesRegistro(false)` y los reactiva antes de mostrar el menú.
 
+El menú también incluye la opción 10, que permite reasignar el nivel de un empleado ya
+registrado mediante `asignarNivel(empleado, nivel)`. El cambio se refleja de inmediato en
+la siguiente verificación de acceso, porque el estado es único.
+
 ## 3.5. Estado del código frente a la consigna
 
 | Requisito de la Sección III | Estado |

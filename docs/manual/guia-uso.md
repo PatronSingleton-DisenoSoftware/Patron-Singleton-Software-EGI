@@ -54,6 +54,7 @@ System.out.println(invalido.isRegistroValido());  // false
 | 7 | Simular punto de acceso (`verificarAcceso`) |
 | 8 | Consultar historial de accesos |
 | 9 | Ejecutar demostración automática completa |
+| 10 | Asignar nivel de acceso a un empleado ya registrado |
 | 0 | Salir |
 
 ## 5. Flujo interno (implementación)
@@ -77,6 +78,10 @@ java -cp out Main
 La opción 9 ejecuta la demostración automática: compara dos llamadas a `getInstance()`,
 registra datos de prueba solo si no existen y recorre los casos de nivel, permiso especial,
 revocación e historial. Puede ejecutarse más de una vez sin duplicar datos.
+
+La opción 10 permite cambiar el nivel de un empleado ya registrado: pide su ID, muestra el
+nivel actual y solicita el nuevo (1 a 5). El cambio se aplica sobre la misma instancia y se
+ve en la próxima verificación de acceso.
 
 ## 7. Errores frecuentes
 
