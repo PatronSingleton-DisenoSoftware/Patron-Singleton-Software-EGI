@@ -119,15 +119,15 @@ public class Main {
     // 2 - Registrar sector
     public static void funcionRegistrarSector(Scanner entradaDatos, ControlAcceso control) {
         System.out.println("\n--- Alta de Sector ---");
-        int idS = leerEntero(entradaDatos, "ID del Sector: ");
+        int identificacion = leerEntero(entradaDatos, "ID del Sector: ");
 
-        if (idS <= 0) {
+        if (identificacion <= 0) {
             System.out.println("Error: El ID del sector debe ser mayor a 0.");
             return;
         }
 
         // Evitar que se repita el ID de otro sector
-        if (control.buscarSector(idS) != null) {
+        if (control.buscarSector(identificacion) != null) {
             System.out.println("Error: Ya existe un sector con ese ID.");
             return;
         }
@@ -137,7 +137,7 @@ public class Main {
         System.out.println("Nivel minimo requerido para ingresar al sector:");
         NivelAcceso nivelRequerido = leerNivelAcceso(entradaDatos);
 
-        Sector sector = new Sector(idS, nombre, nivelRequerido);
+        Sector sector = new Sector(identificacion, nombre, nivelRequerido);
         control.registrarSector(sector);
     }
 

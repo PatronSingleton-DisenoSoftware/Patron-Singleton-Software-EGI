@@ -11,10 +11,10 @@ la decisión propuesta; la tabla siguiente indica cómo se refleja en el código
 
 | ADR | Decisión | Estado | Qué hay en `src/` |
 |-----|----------|--------|-------------------|
-| ADR-01 | `NivelAcceso` como enum | ⚠️ Parcial | Enum `NIVEL_1`…`NIVEL_5`, evaluado por `ordinal()` |
+| ADR-01 | `NivelAcceso` como enum | ✅ Aplicado | Enum con valor numérico y `alcanzaA()`; atributo `nivelAcceso` |
 | ADR-02 | `TipoPermiso` como enum | ❌ No aplicado | `Permiso.especial` es `boolean`; no existe `TipoPermiso.java` |
 | ADR-03 | `fechaHora` como `LocalDateTime` | ✅ Aplicado | `LocalDateTime.now()` asignado automáticamente en constructor |
-| ADR-04 | `Sector.identificacion` | ❌ No aplicado | El atributo sigue siendo `idS` |
+| ADR-04 | `Sector.identificacion` | ✅ Aplicado | Atributo, getter y setter renombrados |
 | ADR-05 | `permisos` en `ControlAcceso` | ✅ Aplicado | `private List<Permiso> permisos` |
 | ADR-06 | Separar verificar de registrar | ❌ No aplicado | `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia |
 | ADR-07 | Singleton lazy sin `synchronized` | ✅ Aplicado | `getInstance()` crea la instancia en la primera llamada |
@@ -35,14 +35,13 @@ concepto: un `int` permite `asignarNivel(99)` sin que nada lo impida.
 El enum debía guardar su valor numérico y exponer `getNivel()` y
 `alcanzaA(NivelAcceso)`.
 
-**Estado actual.** ⚠️ Parcial: el enum existe con las constantes `NIVEL_1` … `NIVEL_5`.
-La comparación jerárquica se realiza por `ordinal()`. El atributo de `Empleado` se llama
-`nivelAcesso`.
+**Estado actual.** ✅ Aplicado: el enum declara `NIVEL_1` … `NIVEL_5` con su valor numérico
+y `alcanzaA(NivelAcceso)` compara por `getNivel()`. El atributo se llama `nivelAcceso`.
 
 **Consecuencias.**
 
 - El compilador impide niveles inventados.
-- La comparación acumulativa aprovecha el orden natural del enum.
+- La comparación acumulativa aprovecha el valor numérico de cada nivel.
 - Los niveles son un conjunto cerrado: agregar uno nuevo es un cambio deliberado en el enum.
 
 **Alternativas descartadas.**
@@ -105,7 +104,8 @@ atributos descriptivos en minúscula) y mezcla abreviaturas con nombres completo
 
 **Decisión.** `Sector.identificacion`.
 
-**Estado actual.** ❌ No aplicado: se conservó `idS` para mantener coherencia con el enunciado.
+**Estado actual.** ✅ Aplicado: `Sector` usa `identificacion` con `getIdentificacion()` y
+`setIdentificacion()`, y el UML y la documentación se actualizaron en consecuencia.
 
 ---
 

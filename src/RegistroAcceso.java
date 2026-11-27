@@ -77,7 +77,7 @@ public class RegistroAcceso {
                         + " (ID " + getEmpleado().getIdentificacion() + ")";
         String nombreSector = (getSector() == null)
                 ? "Sector inexistente"
-                : getSector().getNombre() + " (ID " + getSector().getIdS() + ")";
+                : getSector().getNombre() + " (ID " + getSector().getIdentificacion() + ")";
         String resultado = isAutorizado() ? "AUTORIZADO" : "DENEGADO";
 
         return getFechaHora().format(FORMATO_FECHA_HORA) + " | "

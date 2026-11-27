@@ -1,15 +1,15 @@
 public class Sector {
-    private int idS;
+    private int identificacion;
     private String nombre;
     private NivelAcceso nivelRequerido;
 
-    public Sector(int idS, String nombre, NivelAcceso nivelRequerido){
+    public Sector(int identificacion, String nombre, NivelAcceso nivelRequerido){
         // Se parte de valores seguros y se delega en los setters,
         // asi el constructor y los setters validan siempre igual.
-        this.idS = 0;
+        this.identificacion = 0;
         this.nombre = "";
         this.nivelRequerido = NivelAcceso.NIVEL_1;
-        setIdS(idS);
+        setIdentificacion(identificacion);
         setNombre(nombre);
         setNivelRequerido(nivelRequerido);
     }
@@ -18,20 +18,20 @@ public class Sector {
         return nombre;
     }
 
-    public int getIdS() {
-        return idS;
+    public int getIdentificacion() {
+        return identificacion;
     }
 
     public NivelAcceso getNivelRequerido() {
         return nivelRequerido;
     }
 
-    public void setIdS(int idS) {
-        if (idS <= 0) {
-            System.out.println("Error: el ID del sector debe ser mayor a 0.");
+    public void setIdentificacion(int identificacion) {
+        if (identificacion <= 0) {
+            System.out.println("Error: la identificacion del sector debe ser mayor a 0.");
             return;
         }
-        this.idS = idS;
+        this.identificacion = identificacion;
     }
 
     public void setNombre(String nombre) {
@@ -52,6 +52,6 @@ public class Sector {
 
     @Override
     public String toString() {
-        return "Sector [ID: " + idS + " | Nombre: " + nombre + " | Nivel Requerido: " + nivelRequerido + "]";
+        return "Sector [ID: " + identificacion + " | Nombre: " + nombre + " | Nivel Requerido: " + nivelRequerido + "]";
     }
 }

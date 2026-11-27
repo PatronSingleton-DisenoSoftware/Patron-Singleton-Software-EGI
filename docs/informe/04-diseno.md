@@ -79,7 +79,7 @@ ingresar a los sectores del edificio.
 | `dni` | `private int` | Número de identidad. |
 | `nombre` | `private String` | Nombre. |
 | `apellido` | `private String` | Apellido. |
-| `nivelAcesso` | `private NivelAcceso` | Nivel de acceso asignado. |
+| `nivelAcceso` | `private NivelAcceso` | Nivel de acceso asignado. |
 
 ### Responsabilidades
 
@@ -88,9 +88,8 @@ ingresar a los sectores del edificio.
 - Exponer y modificar el nivel de acceso que tiene asignado.
 
 > El nivel se modela con el enum `NivelAcceso` y no con `int`, como pedía
-> [ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum). La comparación acumulativa se
-> realiza mediante `ordinal()`. El atributo del código se llama `nivelAcesso` (con una «c» de más);
-> se conserva por compatibilidad con el código entregado.
+> [ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum). La comparación acumulativa
+> compara el valor numérico de cada nivel mediante `alcanzaA()` (RN-01).
 
 ## 4.4. `Sector`
 
@@ -100,7 +99,7 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 
 | Atributo | Tipo | Descripción |
 |----------|------|-------------|
-| `idS` | `private int` | Identificador único del sector. |
+| `identificacion` | `private int` | Identificador único del sector. |
 | `nombre` | `private String` | Nombre del sector. |
 | `nivelRequerido` | `private NivelAcceso` | Nivel mínimo necesario para ingresar. |
 
@@ -110,8 +109,10 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 - Proporcionar el nombre del área a la que se intenta ingresar.
 - Establecer el nivel de acceso requerido para cada sector.
 
-> El código conserva `idS`, el nombre del planteo original ([ADR-04](09-decisiones.md#adr-04-identificacion-en-lugar-de-ids) no aplicado).
-> `Sector` dispone de constructor parametrizado, getters y setters para todos sus campos.
+> `Sector` dispone de constructor parametrizado, getters y setters para todos sus campos;
+> el constructor delega en los setters, de modo que valida con las mismas reglas. El
+> identificador se llama `identificacion`
+> ([ADR-04](09-decisiones.md#adr-04-identificacion-en-lugar-de-ids) aplicado).
 
 ## 4.5. `Permiso`
 
@@ -188,16 +189,23 @@ El código actual del enum:
 
 ```java
 public enum NivelAcceso {
-    NIVEL_1, // Acceso General
-    NIVEL_2, // Acceso Interno
-    NIVEL_3, // Acceso Restringido
-    NIVEL_4, // Acceso Tecnico
-    NIVEL_5  // Acceso Directivo
+    NIVEL_1(1, "Acceso General"),
+    NIVEL_2(2, "Acceso Interno"),
+    NIVEL_3(3, "Acceso Restringido"),
+    NIVEL_4(4, "Acceso Tecnico"),
+    NIVEL_5(5, "Acceso Directivo");
+
+    private final int nivel;
+    private final String descripcion;
+
+    public boolean alcanzaA(NivelAcceso nivelRequerido) {
+        return nivelRequerido != null && this.nivel >= nivelRequerido.getNivel();
+    }
 }
 ```
 
-La comparación acumulativa se hace con el **orden de declaración**: `NIVEL_3` alcanza a
-`NIVEL_1`, `NIVEL_2` y `NIVEL_3` porque su `ordinal()` es mayor o igual.
+La comparación acumulativa se hace con el **valor numérico** de cada nivel: `NIVEL_3`
+alcanza a `NIVEL_1`, `NIVEL_2` y `NIVEL_3` porque `3 >= 1`, `3 >= 2` y `3 >= 3`.
 
 ## 4.8. `TipoPermiso` (no implementado)
 
@@ -212,7 +220,7 @@ aplicado**. Las pruebas y el UML usan `boolean especial`, no el enum.
   especiales** para sectores determinados.
 - Cada sector establece el **nivel mínimo** requerido.
 - Cuando un empleado intenta ingresar, `ControlAcceso`:
-  1. compara el `ordinal()` de `empleado.getNivelAcesso()` con el de `sector.getNivelRequerido()`;
+  1. compara el nivel numérico de `empleado.getNivelAcceso()` con el del sector mediante `alcanzaA(sector.getNivelRequerido())`;
   2. si no alcanza, busca un permiso con `esEspecial() && estaActivo()` para ese par empleado–sector;
   3. autoriza o rechaza;
   4. registra el intento con fecha/hora actual y motivo explicativo.
@@ -257,28 +265,29 @@ classDiagram
         -int dni
         -String nombre
         -String apellido
-        -NivelAcceso nivelAcesso
+        -NivelAcceso nivelAcceso
         +Empleado(int, int, String, String, NivelAcceso)
         +int getIdentificacion()
         +int getDni()
         +String getNombre()
         +String getApellido()
-        +NivelAcceso getNivelAcesso()
-        +void setNivelAcesso(NivelAcceso)
+        +NivelAcceso getNivelAcceso()
+        +void setNivelAcceso(NivelAcceso)
         +String toString()
     }
 
     class Sector {
-        -int idS
+        -int identificacion
         -String nombre
         -NivelAcceso nivelRequerido
         +Sector(int, String, NivelAcceso)
-        +int getIdS()
+        +int getIdentificacion()
         +String getNombre()
         +NivelAcceso getNivelRequerido()
-        +void setIdS(int)
+        +void setIdentificacion(int)
         +void setNombre(String)
         +void setNivelRequerido(NivelAcceso)
+        +String toString()
     }
 
     class Permiso {
@@ -358,7 +367,7 @@ Esta organización:
 
 | ID | Regla | Estado en el código |
 |----|-------|---------------------|
-| RN-01 | Un empleado con nivel *n* puede ingresar a todo sector cuyo `nivelRequerido` sea `NIVEL_1` … `NIVEL_n`, según el orden de declaración del enum. | ✅ Implementado vía `ordinal()` |
+| RN-01 | Un empleado con nivel *n* puede ingresar a todo sector cuyo `nivelRequerido` sea `NIVEL_1` … `NIVEL_n`, según el valor numérico del enum. | ✅ Implementado vía `getNivel()` |
 | RN-02 | Un permiso con `especial == true` y `activo == true` permite el ingreso aunque el nivel sea insuficiente. | ✅ Implementado en `tienePermisoEspecialActivo()` |
 | RN-03 | Un permiso revocado (`activo == false`) no habilita el ingreso y no se elimina. | ✅ Implementado en `revocarPermiso()` y `Permiso.revocar()` |
 | RN-04 | Todo intento se registra, sea autorizado o rechazado. | ✅ Implementado en `verificarAcceso()` |
@@ -377,10 +386,10 @@ Resumen; el detalle con contexto y consecuencias está en
 
 | ADR | Decisión | Estado en el código |
 |-----|----------|---------------------|
-| ADR-01 | `NivelAcceso` como enum con valor numérico, en lugar de `int`. | ⚠️ Parcial: enum evaluado por `ordinal()` |
+| ADR-01 | `NivelAcceso` como enum con valor numérico, en lugar de `int`. | ✅ Aplicado: `alcanzaA()` compara por `getNivel()` |
 | ADR-02 | `TipoPermiso` como enum (`ESTANDAR`, `ESPECIAL`), en lugar de un `tipo` sin definir. | ❌ No aplicado: `boolean especial` |
 | ADR-03 | `fechaHora` como `LocalDateTime`, en lugar de `String`. | ✅ Aplicado: asignación con `LocalDateTime.now()` en constructor |
-| ADR-04 | `Sector.identificacion` en lugar de `idS`. | ❌ No aplicado: sigue `idS` |
+| ADR-04 | `Sector.identificacion` en lugar de `idS`. | ✅ Aplicado: atributo, getter y setter renombrados |
 | ADR-05 | La colección `permisos` vive en `ControlAcceso`. | ✅ Aplicado |
 | ADR-06 | Separar `verificarAcceso()` (consulta) de `registrarIntento()` (registro). | ❌ No aplicado: `verificarAcceso` realiza la verificación y el registro |
 | ADR-07 | Singleton lazy sin `synchronized`, por claridad didáctica. | ✅ Aplicado |

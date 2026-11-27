@@ -26,7 +26,7 @@ class ControlAcceso {
   +getSectores() : List<Sector>
   +getPermisos() : List<Permiso>
   +buscarEmpleado(identificacion : int) : Empleado
-  +buscarSector(idS : int) : Sector
+  +buscarSector(identificacion : int) : Sector
   -buscarPermiso(empleado : Empleado, sector : Sector) : Permiso
   -tienePermisoEspecialActivo(empleado : Empleado, sector : Sector) : boolean
 }
@@ -48,14 +48,14 @@ class Empleado {
 }
 
 class Sector {
-  -idS : int
+  -identificacion : int
   -nombre : String
   -nivelRequerido : NivelAcceso
-  +Sector(idS : int, nombre : String, nivelRequerido : NivelAcceso)
-  +getIdS() : int
+  +Sector(identificacion : int, nombre : String, nivelRequerido : NivelAcceso)
+  +getIdentificacion() : int
   +getNombre() : String
   +getNivelRequerido() : NivelAcceso
-  +setIdS(idS : int) : void
+  +setIdentificacion(identificacion : int) : void
   +setNombre(nombre : String) : void
   +setNivelRequerido(nivelRequerido : NivelAcceso) : void
   +toString() : String
