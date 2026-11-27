@@ -167,14 +167,14 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 | `getInstance()` | `+` | Único camino permitido para obtener el objeto. |
 | Atributos del dominio (`empleados`, `sectores`, `permisos`, `registros`) | `-` | Encapsulamiento; se accede por métodos públicos. |
 | Métodos de gestión | `+` | API que consumen los puntos de acceso. |
-| Métodos auxiliares de búsqueda y de permisos | `+` / `-` | `buscarEmpleado` y `buscarSector` (públicos); `buscarPermiso` y `tienePermisoEspecialActivo` (privados). |
+| Métodos auxiliares de búsqueda y de permisos | `+` / `-` | `buscarEmpleado`, `buscarEmpleadoPorDni` y `buscarSector` (públicos); `buscarPermiso` y `tienePermisoEspecialActivo` (privados). |
 
 ## 2.3. Clases, atributos y responsabilidades
 
 | Clase | Atributos clave | Responsabilidad |
 |-------|-----------------|-----------------|
-| `ControlAcceso` | `instancia`, `empleados`, `sectores`, `permisos`, `registros` | Fuente única de verdad: altas, niveles, permisos, verificación y consulta. |
-| `Empleado` | `idEmpleado`, `dni`, `nombre`, `apellido`, `nivelAcceso` | Datos del empleado y su nivel. |
+| `ControlAcceso` | `instancia`, `empleados`, `sectores`, `permisos`, `registros`, `mostrarMensajesRegistro` | Fuente única de verdad: altas, niveles, permisos, verificación y consulta. |
+| `Empleado` | `idEmpleado`, `dni`, `nombre`, `apellido`, `nivelAcceso`, `registroValido` | Datos del empleado, su nivel y la validez calculada de sus datos. |
 | `Sector` | `idSector`, `nombre`, `nivelRequerido` | Área restringida y nivel mínimo para ingresar. |
 | `Permiso` | `empleado`, `sector`, `activo`, `especial` | Relación empleado–sector, con baja lógica. |
 | `RegistroAcceso` | `empleado`, `sector`, `fechaHora`, `autorizado`, `motivo` | Evidencia del intento, para auditoría. |
@@ -183,9 +183,14 @@ La consigna exige respetar estrictamente los roles del patrón y mostrar la visi
 
 > **Nombres tal como están en el código.** El diagrama y estas tablas usan los
 > identificadores reales de `src/` en `main`, incluidos `getInstance()`, `nivelAcceso`,
-> `idEmpleado`, `idSector` y `especial`. Las brechas que aún quedan frente a los ADR
-> (`boolean especial` y `verificarAcceso` que registra) están documentadas en el
-> [Anexo](#anexo-decisiones-de-diseño) y en [`informe/05-implementacion.md`](informe/05-implementacion.md#55-brecha-entre-diseño-e-implementación).
+> `idEmpleado`, `idSector`, `registroValido` y `especial`. Las brechas que aún quedan
+> frente a los ADR (`boolean especial` y `verificarAcceso` que registra) están documentadas
+> en el [Anexo](#anexo-decisiones-de-diseño) y en
+> [`informe/05-implementacion.md`](informe/05-implementacion.md#55-brecha-entre-diseño-e-implementación).
+>
+> Las clases `ControlAcceso`, `Empleado`, `Sector`, `Permiso` y `RegistroAcceso` se
+> declaran `final`: no se heredan y el compilador puede verificar esa restricción
+> ([ADR-09](#anexo-decisiones-de-diseño)).
 
 ## 2.4. Reglas de negocio del dominio
 
@@ -218,7 +223,7 @@ sequenceDiagram
     PA->>CA: verificarAcceso(numEmpleado, numSector)
     activate CA
     CA->>CA: buscar empleado y sector
-    CA->>EM: getNivelAcesso()
+    CA->>EM: getNivelAcceso()
     EM-->>CA: nivel
     CA->>SE: getNivelRequerido()
     SE-->>CA: nivelRequerido
@@ -264,11 +269,11 @@ java -cp out Main
 ```
 src/
 ├── ControlAcceso.java    ← Singleton: listas, constructor, getInstance(), lógica de negocio e historial
-├── Empleado.java         ← 5 atributos, constructor, getters, setters y toString()
-├── Main.java             ← clase de prueba y menú interactivo por consola
+├── Empleado.java         ← 6 atributos (incluye registroValido), validación de DNI y datos, getters, setters y toString()
+├── Main.java             ← clase de prueba, menú interactivo y demostración automática
 ├── Permiso.java          ← 4 atributos, constructor con datos, getters, setters y revocar()
 ├── RegistroAcceso.java   ← 5 atributos, constructor con LocalDateTime.now(), getters, setters y toString()
-├── Sector.java           ← 3 atributos, constructor con datos, getters y setters
+├── Sector.java           ← 3 atributos, validación vía setters, getters, setters y toString()
 ├── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
 └── (TipoPermiso.java no existe)
 ```
@@ -279,13 +284,14 @@ src/
 import java.util.ArrayList;
 import java.util.List;
 
-public class ControlAcceso {
+public final class ControlAcceso {
     // Atributos
-    private List<Empleado> empleados;
-    private List<Sector> sectores;
-    private List<Permiso> permisos;
-    private List<RegistroAcceso> registros;
+    private final List<Empleado> empleados;
+    private final List<Sector> sectores;
+    private final List<Permiso> permisos;
+    private final List<RegistroAcceso> registros;
     private static ControlAcceso instancia;
+    private boolean mostrarMensajesRegistro = true;
 
     // Constructor de acceso unico
     private ControlAcceso() {
@@ -303,6 +309,8 @@ public class ControlAcceso {
         return instancia;
     }
 
+    public void setMostrarMensajesRegistro(boolean mostrar) { /* ... */ }
+
     public void registrarEmpleado(Empleado empleado) { /* ... */ }
     public void registrarSector(Sector sector) { /* ... */ }
     public void asignarNivel(Empleado empleado, NivelAcceso nivelAcceso) { /* ... */ }
@@ -319,6 +327,13 @@ public class ControlAcceso {
         // Se devuelve una copia para que el cliente no modifique la lista interna
         return new ArrayList<>(this.registros);
     }
+
+    // Auxiliares de busqueda y permisos
+    public Empleado buscarEmpleado(int idEmpleado) { /* ... */ }
+    public Empleado buscarEmpleadoPorDni(int dni) { /* ... */ }
+    public Sector buscarSector(int idSector) { /* ... */ }
+    private Permiso buscarPermiso(Empleado empleado, Sector sector) { /* ... */ }
+    private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) { /* ... */ }
 }
 ```
 
@@ -328,6 +343,8 @@ public class ControlAcceso {
 | `private ControlAcceso()` | `new ControlAcceso()` no compila fuera de la clase. Además inicializa las cuatro listas. |
 | `public static ... getInstance()` | Único camino de acceso; crea la instancia la primera vez. |
 | `if (instancia == null)` | Inicialización perezosa (*lazy*). |
+| `private final List<...>` | La referencia a cada colección no se reemplaza después del constructor. |
+| `mostrarMensajesRegistro` | Permite silenciar los avisos de la carga inicial y reactivarlos para el menú. |
 | Métodos de gestión | Implementan validaciones completas, jerarquías de nivel y revocación. |
 | `verificarAcceso(int, int)` y `consultarHistorial()` | Validan permisos, registran intentos de acceso y retornan copia defensiva de la colección (`List<RegistroAcceso>`). |
 
@@ -368,15 +385,22 @@ compartido que cambia para todos los puntos de acceso. El gestor implementa la l
 de `verificarAcceso(int, int)`, el registro de cada intento y `consultarHistorial()`
 devolviendo la colección de registros (`List<RegistroAcceso>`) como copia defensiva.
 
+La demostración automática (opción 9 del menú) es **idempotente**: antes de dar de alta
+sus sectores y empleados de prueba consulta si ya existen, de modo que puede ejecutarse
+varias veces sobre la misma instancia sin duplicar datos ni imprimir avisos de "ya existe".
+La carga inicial de `main()` silencia los mensajes de registro con
+`setMostrarMensajesRegistro(false)` y los reactiva antes de mostrar el menú.
+
 ## 3.5. Estado del código frente a la consigna
 
 | Requisito de la Sección III | Estado |
 |-----------------------------|--------|
 | Código completo, sin partes por completar | ✅ Las entidades y la lógica de ControlAcceso están implementadas |
 | Restricciones del patrón (constructor privado, atributo estático privado, acceso estático público) | ✅ Implementadas |
-| Clase de prueba con flujo simulado | ✅ Main interactivo conectado al Singleton |
+| Clase de prueba con flujo simulado | ✅ Main interactivo con demostración automática conectada al Singleton |
 | Versión del lenguaje indicada | ✅ Java 23 (compatible 17+) |
 | Cómo se ejecuta | ✅ Comandos en §3.1 |
+| Compilación sin advertencias | ✅ `javac -Xlint:all` sin advertencias |
 | Enlace al GitHub personal | ✅ Repositorio público en §3.6 |
 
 ## 3.6. Enlace al repositorio
@@ -437,9 +461,11 @@ solución "abierta/cerrada"; se documenta como mejora, no se implementa en esta 
 
 El diseño no usa jerarquías de herencia: `Empleado`, `Sector`, `Permiso` y
 `RegistroAcceso` son clases independientes; `NivelAcceso` es un enum y `TipoPermiso` no
-existe en el código. No hay subtipos que puedan romper el contrato de un supertipo, por lo
-que LSP no se ve comprometido. Es una consecuencia de haber preferido **composición** (un
-`Permiso` referencia a un `Empleado` y a un `Sector`) sobre herencia.
+existe en el código. Además, las cinco clases del dominio se declaran `final`, de modo
+que ni siquiera por herencia se puede alterar su contrato. No hay subtipos que puedan
+romper el contrato de un supertipo, por lo que LSP no se ve comprometido. Es una
+consecuencia de haber preferido **composición** (un `Permiso` referencia a un `Empleado`
+y a un `Sector`) sobre herencia.
 
 ### I — Segregación de Interfaces
 
@@ -516,6 +542,7 @@ Decisiones tomadas antes de programar, con el estado real de aplicación en el c
 | ADR-06 | `verificarAcceso()` no registra; `registrarIntento()` sí | Separa consulta de efecto secundario. | ❌ No aplicado: `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia. |
 | ADR-07 | Singleton lazy sin `synchronized` | Claridad didáctica; el riesgo multihilo se documenta en §4.3. | ✅ Aplicado: `getInstance()` crea la instancia en la primera llamada. |
 | ADR-08 | Setters en todas las clases | Cumple la regla de la cátedra, aun cuando `RegistroAcceso` podría ser inmutable. | ✅ Aplicado: constructores, getters y setters en todas las clases; copia defensiva en historial. |
+| ADR-09 | Clases de dominio `final` y validez calculada | Evita herencia no prevista y advertencias `this-escape`; la validez se recalcula desde los datos. | ✅ Aplicado: `final` en las cinco clases; `Empleado.datosValidos()` y `setRegistroValido()` no permiten forzar un estado inválido. |
 
 ---
 
@@ -535,5 +562,4 @@ Decisiones tomadas antes de programar, con el estado real de aplicación en el c
 
 ## Qué falta para poder entregar
 
-1. Completar los datos de los integrantes en la portada.
-2. Exportar este documento a PDF y subirlo al campus virtual.
+1. Exportar este documento a PDF y subirlo al campus virtual.

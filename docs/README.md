@@ -51,13 +51,18 @@ Las convenciones de código obligatorias viven en
 
 ## Estado frente a la consigna
 
-La estructura de las siete clases y del Singleton está creada y el proyecto compila. La
-lógica de negocio y la demostración siguen pendientes. Quedan **tres bloqueantes**:
+El proyecto está **implementado y compila sin advertencias** con `javac -Xlint:all`. La
+estructura de clases, el Singleton, la lógica de negocio, la auditoría y la demostración
+automática están completos.
 
-1. `ControlAcceso` tiene las firmas, pero no la lógica; `Permiso.revocar()` está vacío y
-   `RegistroAcceso` no asigna la fecha;
-2. `Main` está vacío: no hay demostración en ejecución del patrón;
-3. faltan los datos de los integrantes y la exportación a PDF.
+Queda **un solo bloqueante** para la entrega:
+
+1. exportar `EGI-Patron-Singleton.md` a PDF y subirlo al campus virtual.
+
+Las brechas de diseño que se mantienen de forma deliberada son las de los ADR-02
+(`boolean especial` en lugar de `TipoPermiso`) y ADR-06 (`verificarAcceso` evalúa y
+registra). Están aceptadas y documentadas en el [Anexo](EGI-Patron-Singleton.md#anexo-decisiones-de-diseño)
+y en [Decisiones de diseño](informe/09-decisiones.md).
 
 El repositorio ya es público y su enlace figura en la Sección III. El detalle está en la
 [lista de control](EGI-Patron-Singleton.md#lista-de-control-de-la-consigna) y en

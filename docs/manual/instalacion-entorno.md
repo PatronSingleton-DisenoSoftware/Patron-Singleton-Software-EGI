@@ -4,7 +4,7 @@
 
 | Componente | Versión usada | Notas |
 |------------|---------------|-------|
-| JDK | 17 o superior | En este equipo hay JDK 23.0.1; el proyecto declara nivel de lenguaje 21 en `.idea/misc.xml`. |
+| JDK | 17 o superior | En este equipo hay JDK 23.0.1; `.idea/misc.xml` declara `JDK_23` como nivel de lenguaje. |
 | IntelliJ IDEA | Community Edition 2025.2.6.3 | La edición Community alcanza: no se usan frameworks de Enterprise. |
 | Git | Cualquiera reciente | Opcional, solo para versionado. |
 
@@ -32,7 +32,7 @@ Si al abrir aparece un aviso de "Project SDK is not defined":
 1. **File → Project Structure…** (`Ctrl+Alt+Shift+S`).
 2. **Project → SDK → Add SDK → JDK…**
 3. Elegir el JDK instalado (por ejemplo, `C:\Program Files\Java\jdk-23`).
-4. Verificar **Language level**: 21 o el que corresponda al JDK elegido.
+4. Verificar **Language level**: `23` (o el que corresponda al JDK elegido; el código es compatible con 17+).
 
 > El proyecto no usa Maven ni Gradle: se compila con el compilador propio de IntelliJ y
 > el resultado va a `out/`, carpeta ya ignorada por `.gitignore`.
@@ -47,6 +47,7 @@ Patron-Singleton-Software-EGI
 │   ├── ControlAcceso.java
 │   ├── Empleado.java
 │   ├── Main.java
+│   ├── NivelAcceso.java
 │   ├── Permiso.java
 │   ├── RegistroAcceso.java
 │   └── Sector.java
@@ -63,7 +64,13 @@ Si `src` aparece como carpeta común (gris), marcarla: clic derecho →
 - **Build → Build Project** (`Ctrl+F9`).
 - Abrir `src/Main.java` y usar el triángulo verde junto a `main` para ejecutar.
 
-El proyecto compila sin errores en el estado actual.
+El proyecto compila sin errores ni advertencias en el estado actual. Para verificarlo desde
+la terminal:
+
+```powershell
+javac -Xlint:all -d out (Get-ChildItem src\*.java).FullName
+java -cp out Main
+```
 
 ## 6. Ver la documentación
 

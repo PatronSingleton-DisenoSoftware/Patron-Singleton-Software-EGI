@@ -33,6 +33,7 @@ bajo el patrón Singleton.
 | `sectores` | `List<Sector>` | `private` | Sectores disponibles. |
 | `permisos` | `List<Permiso>` | `private` | Permisos concedidos (activos y revocados). |
 | `registros` | `List<RegistroAcceso>` | `private` | Historial de accesos. |
+| `mostrarMensajesRegistro` | `boolean` | `private` | Interruptor de los avisos de alta; permite silenciar la carga inicial. |
 
 > `permisos` se agrega al diseño original: sin esa colección, `ControlAcceso` no puede
 > "conceder y revocar permisos" ni mantener una única fuente de verdad sobre ellos.
@@ -62,9 +63,12 @@ bajo el patrón Singleton.
 | `revocarPermiso(Permiso)` | Delega la baja lógica en el permiso. | ✅ Implementado |
 | `verificarAcceso(int, int)` | `true` si el empleado puede ingresar al sector; genera registro. | ✅ Implementado |
 | `consultarHistorial()` | Devuelve copia defensiva del historial (`List<RegistroAcceso>`). | ✅ Implementado |
+| `setMostrarMensajesRegistro(boolean)` | Activa o silencia los avisos de alta. | ✅ Implementado |
+| `getEmpleados()` / `getSectores()` / `getPermisos()` | Copias defensivas de cada colección. | ✅ Implementado |
 
 > Como métodos auxiliares de validación y soporte interno se incorporaron `buscarEmpleado(int)`,
-> `buscarSector(int)`, `buscarPermiso(Empleado, Sector)` y `tienePermisoEspecialActivo(Empleado, Sector)`.
+> `buscarEmpleadoPorDni(int)`, `buscarSector(int)`, `buscarPermiso(Empleado, Sector)` y
+> `tienePermisoEspecialActivo(Empleado, Sector)`.
 
 ## 4.3. `Empleado`
 
@@ -80,12 +84,19 @@ ingresar a los sectores del edificio.
 | `nombre` | `private String` | Nombre. |
 | `apellido` | `private String` | Apellido. |
 | `nivelAcceso` | `private NivelAcceso` | Nivel de acceso asignado. |
+| `registroValido` | `private boolean` | Indica si el empleado pasó las validaciones de alta. |
 
 ### Responsabilidades
 
 - Almacenar los datos del empleado.
 - Proporcionar su identificación, nombre y apellido.
 - Exponer y modificar el nivel de acceso que tiene asignado.
+- Validar el DNI (7 u 8 dígitos) y recalcular la validez de sus datos con `datosValidos()`.
+
+> `isRegistroValido()` combina la marca `registroValido` con `datosValidos()`: si un setter
+> deja los datos en un estado inválido, el empleado deja de considerarse registrable.
+> `setRegistroValido(true)` no puede forzar la validez por sí solo
+> ([ADR-09](09-decisiones.md#adr-09-clases-final-y-validez-calculada)).
 
 > El nivel se modela con el enum `NivelAcceso` y no con `int`, como pedía
 > [ADR-01](09-decisiones.md#adr-01-nivelacceso-como-enum). La comparación acumulativa
@@ -108,6 +119,7 @@ Representa las diferentes áreas del edificio que tienen acceso restringido.
 - Identificar cada sector.
 - Proporcionar el nombre del área a la que se intenta ingresar.
 - Establecer el nivel de acceso requerido para cada sector.
+- Informar con `datosValidos()` si el sector tiene los datos mínimos para registrarse.
 
 > `Sector` dispone de constructor parametrizado, getters y setters para todos sus campos;
 > el constructor delega en los setters, de modo que valida con las mismas reglas. El
@@ -198,8 +210,19 @@ public enum NivelAcceso {
     private final int nivel;
     private final String descripcion;
 
+    private NivelAcceso(int nivel, String descripcion) {
+        this.nivel = nivel;
+        this.descripcion = descripcion;
+    }
+
+    public int getNivel() { return nivel; }
+    public String getDescripcion() { return descripcion; }
+
     public boolean alcanzaA(NivelAcceso nivelRequerido) {
-        return nivelRequerido != null && this.nivel >= nivelRequerido.getNivel();
+        if (nivelRequerido == null) {
+            return false;
+        }
+        return this.nivel >= nivelRequerido.getNivel();
     }
 }
 ```
@@ -245,8 +268,10 @@ classDiagram
         -List~Sector~ sectores
         -List~Permiso~ permisos
         -List~RegistroAcceso~ registros
+        -boolean mostrarMensajesRegistro
         -ControlAcceso()
         +static ControlAcceso getInstance()
+        +void setMostrarMensajesRegistro(boolean)
         +void registrarEmpleado(Empleado)
         +void registrarSector(Sector)
         +void asignarNivel(Empleado, NivelAcceso)
@@ -255,6 +280,7 @@ classDiagram
         +boolean verificarAcceso(int, int)
         +List~RegistroAcceso~ consultarHistorial()
         +Empleado buscarEmpleado(int)
+        +Empleado buscarEmpleadoPorDni(int)
         +Sector buscarSector(int)
         -Permiso buscarPermiso(Empleado, Sector)
         -boolean tienePermisoEspecialActivo(Empleado, Sector)
@@ -266,11 +292,20 @@ classDiagram
         -String nombre
         -String apellido
         -NivelAcceso nivelAcceso
+        -boolean registroValido
         +Empleado(int, int, String, String, NivelAcceso)
+        +static boolean esDniValido(int)
+        +boolean isRegistroValido()
+        +void setRegistroValido(boolean)
+        +boolean datosValidos()
         +int getIdEmpleado()
+        +void setIdEmpleado(int)
         +int getDni()
+        +void setDni(int)
         +String getNombre()
+        +void setNombre(String)
         +String getApellido()
+        +void setApellido(String)
         +NivelAcceso getNivelAcceso()
         +void setNivelAcceso(NivelAcceso)
         +String toString()
@@ -281,6 +316,7 @@ classDiagram
         -String nombre
         -NivelAcceso nivelRequerido
         +Sector(int, String, NivelAcceso)
+        +boolean datosValidos()
         +int getIdSector()
         +String getNombre()
         +NivelAcceso getNivelRequerido()
@@ -348,6 +384,10 @@ classDiagram
     Sector --> NivelAcceso
 ```
 
+> Las clases `ControlAcceso`, `Empleado`, `Sector`, `Permiso` y `RegistroAcceso` se
+> declaran `final` ([ADR-09](09-decisiones.md#adr-09-clases-final-y-validez-calculada)).
+> La fuente editable del UML de entrega es `assets/uml-clases.puml`.
+
 ## 4.11. Aplicación del patrón Singleton
 
 `ControlAcceso` implementa Singleton para garantizar que exista **una única instancia
@@ -394,6 +434,7 @@ Resumen; el detalle con contexto y consecuencias está en
 | ADR-06 | Separar `verificarAcceso()` (consulta) de `registrarIntento()` (registro). | ❌ No aplicado: `verificarAcceso` realiza la verificación y el registro |
 | ADR-07 | Singleton lazy sin `synchronized`, por claridad didáctica. | ✅ Aplicado |
 | ADR-08 | Setters en todas las clases para cumplir `Reglas-Proyecto.md`. | ✅ Aplicado: constructores, getters y setters en todas las entidades |
+| ADR-09 | Clases de dominio `final` y validez calculada en `Empleado`. | ✅ Aplicado: las cinco clases son `final`; `datosValidos()` y `setRegistroValido()` evitan estados inválidos |
 
 ## 4.14. Flujo previsto de uso
 
@@ -419,7 +460,7 @@ sequenceDiagram
     PA->>CA: verificarAcceso(numEmpleado, numSector)
     activate CA
     CA->>CA: buscar empleado y sector
-    CA->>EM: getNivelAcesso()
+    CA->>EM: getNivelAcceso()
     EM-->>CA: nivel
     CA->>SE: getNivelRequerido()
     SE-->>CA: nivelRequerido
