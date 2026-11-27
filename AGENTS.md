@@ -38,9 +38,11 @@ Software, ITU UNCuyo Sede Este).
 
 ### Bloqueantes antes de entregar
 
-1. Resolver o aceptar formalmente las brechas de los ADR-02 y 06 (`boolean especial`,
-   `verificarAcceso` que registra).
-2. Completar los datos de los integrantes y exportar el documento a PDF.
+1. Exportar `docs/EGI-Patron-Singleton.md` a PDF y subirlo al campus virtual.
+
+Las brechas de los ADR-02 y 06 (`boolean especial`, `verificarAcceso` que registra) están
+**aceptadas y documentadas** como decisiones de diseño; no bloquean la entrega. Los datos
+de los integrantes ya están cargados.
 
 El repositorio ya es público: la URL figura en la Sección III del documento de entrega.
 La lista completa está en `docs/EGI-Patron-Singleton.md` (sección "Lista de control de la
@@ -91,36 +93,42 @@ java -cp out Main
 En IntelliJ IDEA: abrir `src/Main.java` y usar **Run** (`Ctrl+Shift+F10`), o
 **Build → Build Project** (`Ctrl+F9`).
 
-JDK: 17 o superior (en este equipo, 23.0.1; `.idea/misc.xml` declara nivel 21).
+JDK: 17 o superior (en este equipo, 23.0.1; `.idea/misc.xml` declara `JDK_23`).
 
 ## Estado real del código
 
 No asumir que lo documentado está implementado. Estado actual (alineado con `main` el
-2026-11-26):
+2026-11-27):
 
 - ✅ `ControlAcceso`: Singleton correcto (atributo `private static`, constructor privado,
-  `getInstance()` lazy sin `synchronized`), cuatro listas inicializadas y lógica completa
-  de altas, niveles, permisos, `verificarAcceso` (evalúa y registra) y `consultarHistorial`
-  con copia defensiva.
+  `getInstance()` lazy sin `synchronized`), cuatro listas `final` inicializadas, lógica
+  completa de altas (validación de datos y duplicados por ID y DNI), niveles, permisos
+  (con reactivación de permisos revocados), `verificarAcceso` (evalúa y registra),
+  `consultarHistorial` y getters con copia defensiva, y `mostrarMensajesRegistro` para
+  silenciar la carga inicial.
 - ✅ `Empleado`: 6 atributos privados (incluye `registroValido`), constructor con
-  validación, getters, setters y `toString()`.
+  validación, `esDniValido()`, `isRegistroValido()`, `setRegistroValido()`,
+  `datosValidos()`, getters, setters y `toString()`.
 - ✅ `Sector`: 3 atributos privados (`idSector`, `nombre`, `nivelRequerido`),
-  constructor que delega en los setters, getters, setters y `toString()`.
-- ✅ `Permiso`: `empleado`, `sector`, `activo`, `especial`, getters, setters y
-  `revocar()` funcional.
-- ✅ `RegistroAcceso`: constructor con `LocalDateTime.now()`, getters, setters y `toString()`.
+  constructor que delega en los setters, `datosValidos()`, getters, setters y `toString()`.
+- ✅ `Permiso`: `empleado`, `sector`, `activo`, `especial`, getters, setters con validación
+  de nulos y `revocar()` funcional.
+- ✅ `RegistroAcceso`: constructor con `LocalDateTime.now()`, getters, setters con
+  validación de fecha y motivo, y `toString()` legible.
 - ✅ `NivelAcceso`: enum `NIVEL_1` … `NIVEL_5` con valor numérico y `alcanzaA()`.
 - ❌ `TipoPermiso`: no existe (se usa `boolean especial`).
-- ✅ `Main`: menú interactivo por consola más demostración automática del patrón.
-- ✅ El proyecto compila sin errores.
+- ✅ `Main`: menú interactivo por consola con demostración automática idempotente y
+  opción 10 para reasignar el nivel de un empleado registrado.
+- ✅ Las cinco clases del dominio son `final` (ADR-09).
+- ✅ El proyecto compila con `javac -Xlint:all` sin errores ni advertencias.
 
 El **diseño documentado** está alineado al código: `docs/informe/04-diseno.md` describe
 la estructura real y `05-implementacion.md` registra la brecha exacta.
 
 Decisiones registradas en `docs/informe/09-decisiones.md`: el código aplicó **ADR-01**,
-**ADR-03**, **ADR-04**, **ADR-05**, **ADR-07** y **ADR-08**; quedan sin aplicar **ADR-02**
-(`TipoPermiso`) y **ADR-06** (separar verificar de registrar). No cambiar nombres ni tipos
-sin actualizar esa tabla y el UML.
+**ADR-03**, **ADR-04**, **ADR-05**, **ADR-07**, **ADR-08** y **ADR-09**; quedan sin aplicar
+**ADR-02** (`TipoPermiso`) y **ADR-06** (separar verificar de registrar). No cambiar nombres
+ni tipos sin actualizar esa tabla y el UML.
 
 Mantener actualizado `docs/informe/07-conclusiones.md` y el
 [índice de documentación](docs/README.md) cuando cambie el estado.
@@ -129,11 +137,13 @@ Mantener actualizado `docs/informe/07-conclusiones.md` y el
 
 - Idioma: **español** (código, comentarios, docs y mensajes de commit).
 - Formato: Markdown UTF-8.
-- Diagramas: Mermaid embebido en los `.md` para los flujos. El UML de entrega se mantiene
-  en `docs/assets/uml-clases.puml`, se renderiza a `uml-clases.png` y se embebe como imagen
-  (ver `docs/README.md`).
+- Diagramas: Mermaid embebido en los `.md` del informe de trabajo. Las figuras del documento
+  de entrega se mantienen en `docs/assets/uml-clases.puml` y `docs/assets/flujo-acceso.puml`,
+  se renderizan a PNG y se embeben como imágenes (ver `docs/README.md`).
 - Imágenes: `docs/assets/`, referenciadas con rutas relativas.
-- No duplicar contenido: el informe referencia el código, no lo copia entero.
+- No duplicar contenido: el informe referencia el código, no lo copia entero. **Excepción:**
+  el documento de entrega incluye el Anexo B con las siete clases completas de `src/`. Si
+  cambia una clase, actualizar también ese anexo para que no se desincronice.
 
 ## Git
 

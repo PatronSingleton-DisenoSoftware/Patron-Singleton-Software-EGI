@@ -1,0 +1,38 @@
+@startuml flujo-acceso
+' Diagrama de secuencia de la Sección II, alineado al código de src/.
+' Corresponde al flujo de verificarAcceso() del documento de entrega.
+
+skinparam shadowing false
+autonumber
+
+actor "Punto de acceso" as PA
+participant ControlAcceso as CA
+participant Empleado as EM
+participant Sector as SE
+participant RegistroAcceso as RE
+
+PA -> CA: getInstance()
+CA --> PA: instancia única
+PA -> CA: verificarAcceso(numEmpleado, numSector)
+activate CA
+CA -> CA: buscar empleado y sector
+CA -> EM: getNivelAcceso()
+EM --> CA: nivel
+CA -> SE: getNivelRequerido()
+SE --> CA: nivelRequerido
+
+alt por nivel
+    CA -> CA: autorizado = true, motivo = por nivel
+else por permiso
+    CA -> CA: autorizado = true, motivo = por permiso especial
+else insuficiente
+    CA -> CA: autorizado = false, motivo = Nivel insuficiente
+end
+
+CA -> RE: new RegistroAcceso(empleado, sector, autorizado, motivo)
+CA --> PA: resultado
+deactivate CA
+PA -> CA: consultarHistorial()
+CA --> PA: List<RegistroAcceso> (copia defensiva)
+
+@enduml

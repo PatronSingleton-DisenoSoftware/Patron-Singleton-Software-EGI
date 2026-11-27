@@ -14,12 +14,12 @@
 
 **Integrantes:**
 
-| Nombre y apellido  |
+| Apellido, Nombre   |
 |--------------------|
-| Yampa Candito      |
-| Federico Rodriguez |
-| Giuliano Gilio     |
-| Lucas Marasco      |
+| Candito, Yampa     |
+| Rodriguez, Federico |
+| Gilio, Giuliano    |
+| Marasco, Lucas     |
 
 **Patrón elegido:** Singleton
 
@@ -27,7 +27,7 @@
 
 **Fecha de entrega:** 30/11/2026
 
-**Versión del documento:** 1.0
+**Versión del documento:** 1.1
 
 ---
 

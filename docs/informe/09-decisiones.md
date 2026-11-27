@@ -19,6 +19,7 @@ la decisión propuesta; la tabla siguiente indica cómo se refleja en el código
 | ADR-06 | Separar verificar de registrar | ❌ No aplicado | `verificarAcceso(int, int)` evalúa y registra; `consultarHistorial()` devuelve copia |
 | ADR-07 | Singleton lazy sin `synchronized` | ✅ Aplicado | `getInstance()` crea la instancia en la primera llamada |
 | ADR-08 | Setters en todas las clases | ✅ Aplicado | Constructores, getters y setters completos; copia defensiva en historial |
+| ADR-09 | Clases `final` y validez calculada | ✅ Aplicado | Cinco clases `final`; `Empleado.datosValidos()` y `setRegistroValido()` |
 
 > Las decisiones no aplicadas se mantienen documentadas para justificar el diseño
 > implementado durante la defensa del proyecto.
@@ -219,6 +220,46 @@ cuentan con constructores parametrizados, getters y setters para todos sus atrib
 - Se pierde la inmutabilidad teórica del historial: un setter podría alterar un registro ya guardado.
 - Mitigación aplicada: `consultarHistorial()` devuelve una **copia** de la lista (`new ArrayList<>(this.registros)`)
   para que no se modifique la colección interna desde afuera.
+
+---
+
+## ADR-09: clases `final` y validez calculada
+
+**Contexto.** Al compilar con `-Xlint:all`, el compilador advirtió sobre `this-escape` en
+los constructores que llaman a métodos sobrescribibles. Además, `Empleado.registroValido`
+era una bandera que el cliente podía poner en `true` con `setRegistroValido(true)` aunque
+los datos del empleado fueran inválidos.
+
+**Decisión.**
+
+- Declarar `final` las cinco clases del dominio: `ControlAcceso`, `Empleado`, `Sector`,
+  `Permiso` y `RegistroAcceso`.
+- Recalcular la validez con `Empleado.datosValidos()` y hacer que
+  `isRegistroValido()` combine la bandera con ese cálculo.
+- Hacer que `setRegistroValido(true)` solo tenga efecto si `datosValidos()` es verdadero.
+- Agregar `Sector.datosValidos()` para que `registrarSector()` rechace sectores incompletos.
+
+**Estado actual.** ✅ Aplicado en `src/`. `javac -Xlint:all` compila sin advertencias.
+
+**Consecuencias.**
+
+- No se puede heredar de las entidades para alterar su contrato; el diseño queda cerrado
+  donde no se prevé extensión por herencia.
+- La validez de un empleado no puede quedar "pegada" en `true` si un setter posterior deja
+  el nombre, el DNI o el nivel en un estado inválido.
+- `ControlAcceso.registrarEmpleado()` y `registrarSector()` pueden confiar en
+  `isRegistroValido()` y `datosValidos()` antes de agregar a las colecciones.
+- Se pierde la posibilidad —no utilizada— de especializar entidades por herencia; si se
+  necesitara, habría que quitar `final` y justificarlo.
+
+**Alternativas descartadas.**
+
+- Suprimir la advertencia `this-escape` con `@SuppressWarnings`: oculta el problema sin
+  corregir el diseño.
+- Dejar `registroValido` como bandera libre: permite registrar empleados con datos
+  inválidos si el cliente la fuerza.
+- Validar solo en `Main`: deja desprotegida cualquier otra vía de alta (por ejemplo, una
+  prueba o un futuro cliente).
 
 ---
 

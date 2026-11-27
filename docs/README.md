@@ -18,7 +18,9 @@ secciones obligatorias de la consigna, en orden.
 | IV. Análisis crítico y principios SOLID | `EGI-Patron-Singleton.md` §IV |
 
 Los capítulos de `informe/` son la **versión extendida de trabajo** (más detalle del que
-pide la consigna). Si hay diferencias, manda el documento de entrega.
+pide la consigna). Si hay diferencias, manda el documento de entrega. El Anexo B de ese
+documento reproduce el código completo de `src/`; al modificar una clase hay que
+actualizar también ese anexo.
 
 ## Índice de la documentación de trabajo
 
@@ -51,13 +53,18 @@ Las convenciones de código obligatorias viven en
 
 ## Estado frente a la consigna
 
-La estructura de las siete clases y del Singleton está creada y el proyecto compila. La
-lógica de negocio y la demostración siguen pendientes. Quedan **tres bloqueantes**:
+El proyecto está **implementado y compila sin advertencias** con `javac -Xlint:all`. La
+estructura de clases, el Singleton, la lógica de negocio, la auditoría y la demostración
+automática están completos.
 
-1. `ControlAcceso` tiene las firmas, pero no la lógica; `Permiso.revocar()` está vacío y
-   `RegistroAcceso` no asigna la fecha;
-2. `Main` está vacío: no hay demostración en ejecución del patrón;
-3. faltan los datos de los integrantes y la exportación a PDF.
+Queda **un solo bloqueante** para la entrega:
+
+1. exportar `EGI-Patron-Singleton.md` a PDF y subirlo al campus virtual.
+
+Las brechas de diseño que se mantienen de forma deliberada son las de los ADR-02
+(`boolean especial` en lugar de `TipoPermiso`) y ADR-06 (`verificarAcceso` evalúa y
+registra). Están aceptadas y documentadas en el [Anexo](EGI-Patron-Singleton.md#anexo-decisiones-de-diseño)
+y en [Decisiones de diseño](informe/09-decisiones.md).
 
 El repositorio ya es público y su enlace figura en la Sección III. El detalle está en la
 [lista de control](EGI-Patron-Singleton.md#lista-de-control-de-la-consigna) y en
@@ -68,19 +75,19 @@ El repositorio ya es público y su enlace figura en la Sección III. El detalle 
 - Idioma: español.
 - Formato: Markdown (`.md`), codificación UTF-8.
 - Nombres de archivo en minúsculas, con prefijo numérico para mantener el orden de lectura.
-- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` (IntelliJ lo renderiza en la vista previa, sin plugins). El UML de la entrega está como imagen (`assets/uml-clases.png`) generada desde `assets/uml-clases.puml`; para regenerarla, ver las instrucciones del final de este archivo.
+- Diagramas: [Mermaid](https://mermaid.js.org/) embebido en los `.md` del informe de trabajo (IntelliJ lo renderiza en la vista previa, sin plugins). Las figuras del documento de entrega están como imágenes: `assets/uml-clases.png` (clases) y `assets/flujo-acceso.png` (secuencia), generadas desde sus `.puml`; para regenerarlas, ver las instrucciones del final de este archivo.
 - Imágenes y capturas: carpeta `docs/assets/` y referencia relativa desde el documento que las usa.
 - Código citado: bloques ```` ```java ```` con el lenguaje indicado.
 
-## Regenerar el diagrama UML (PNG)
+## Regenerar los diagramas (PNG)
 
-Fuente: `assets/uml-clases.puml`. Salida: `assets/uml-clases.png` (ya incluida en el
-documento de entrega).
+Fuentes: `assets/uml-clases.puml` y `assets/flujo-acceso.puml`. Salidas: los PNG del mismo
+nombre, ya incluidos en el documento de entrega.
 
 ### Opción A — IntelliJ IDEA (sin salir del IDE)
 
 1. `Settings → Plugins → Marketplace` → instalar **PlantUML Integration**.
-2. Abrir `docs/assets/uml-clases.puml`.
+2. Abrir `docs/assets/uml-clases.puml` o `docs/assets/flujo-acceso.puml`.
 3. Clic derecho en el editor → **Save diagram** (o el ícono de exportar de la barra de
    herramientas) → elegir PNG.
 
@@ -102,11 +109,11 @@ sensibles.
 # descargar una vez
 Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2024.7/plantuml-1.2024.7.jar" -OutFile plantuml.jar
 
-# renderizar (sin Graphviz, usa el layout Smetana)
-java '-Djava.awt.headless=true' -jar plantuml.jar -tpng '-Playout=smetana' docs\assets\uml-clases.puml -o docs\assets
+# renderizar ambos (sin Graphviz, usa el layout Smetana)
+java '-Djava.awt.headless=true' -jar plantuml.jar -tpng '-Playout=smetana' docs\assets\uml-clases.puml docs\assets\flujo-acceso.puml -o .
 ```
 
-Con Smetana el PNG se genera igual, pero el subrayado de `static` puede no verse. Para el
-PNG final conviene Graphviz (opciones A o B).
+`-o .` deja el PNG al lado de cada `.puml`. Con Smetana el subrayado de `static` puede no
+verse en el diagrama de clases; para el PNG final conviene Graphviz (opciones A o B).
 
-> El nombre del PNG lo toma de la línea `@startuml uml-clases`.
+> El nombre del PNG lo toma de la línea `@startuml …` de cada archivo.

@@ -10,11 +10,11 @@
 ```
 src/
 ├── ControlAcceso.java    ← Singleton: listas, constructor, getInstance(), lógica de negocio e historial
-├── Empleado.java         ← 5 atributos, constructor, getters, setters y toString()
-├── Main.java             ← clase de prueba y menú interactivo por consola
+├── Empleado.java         ← 6 atributos (incluye registroValido), validación de DNI y datos, getters, setters y toString()
+├── Main.java             ← clase de prueba, menú interactivo y demostración automática
 ├── Permiso.java          ← 4 atributos, constructor con datos, getters, setters y revocar()
 ├── RegistroAcceso.java   ← 5 atributos, constructor con LocalDateTime.now(), getters, setters y toString()
-├── Sector.java           ← 3 atributos, constructor con datos, getters y setters
+├── Sector.java           ← 3 atributos, validación vía setters, getters, setters y toString()
 ├── NivelAcceso.java      ← enum NIVEL_1 … NIVEL_5
 └── (TipoPermiso.java no existe)
 ```
@@ -30,13 +30,18 @@ Estructura central (`src/ControlAcceso.java`):
 import java.util.ArrayList;
 import java.util.List;
 
-public class ControlAcceso {
+public final class ControlAcceso {
     // Atributos
-    private List<Empleado> empleados;
-    private List<Sector> sectores;
-    private List<Permiso> permisos;
-    private List<RegistroAcceso> registros;
+    private final List<Empleado> empleados;
+    private final List<Sector> sectores;
+    private final List<Permiso> permisos;
+    private final List<RegistroAcceso> registros;
     private static ControlAcceso instancia;
+    private boolean mostrarMensajesRegistro = true;
+
+    public void setMostrarMensajesRegistro(boolean mostrar) {
+        this.mostrarMensajesRegistro = mostrar;
+    }
 
     // Constructor de acceso unico
     private ControlAcceso() {
@@ -73,6 +78,7 @@ public class ControlAcceso {
 
     // Metodos auxiliares
     public Empleado buscarEmpleado(int idEmpleado) { /* ... */ }
+    public Empleado buscarEmpleadoPorDni(int dni) { /* ... */ }
     public Sector buscarSector(int idSector) { /* ... */ }
     private Permiso buscarPermiso(Empleado empleado, Sector sector) { /* ... */ }
     private boolean tienePermisoEspecialActivo(Empleado empleado, Sector sector) { /* ... */ }
@@ -99,48 +105,105 @@ Consecuencia: `ControlAcceso.getInstance() == ControlAcceso.getInstance()` es `t
 
 ### Capacidades implementadas en esta clase
 
-- **Altas con validación:** `registrarEmpleado` y `registrarSector` verifican duplicados por identificación antes de agregar.
-- **Gestión de permisos:** `concederPermiso` valida existencia de empleado y sector (CP-12) y reactiva permisos previos si ya existían; `revocarPermiso` realiza baja lógica delegando en `Permiso.revocar()`.
-- **Verificación de accesos:** `verificarAcceso` evalúa jerarquía con `alcanzaA()` de `NivelAcceso` (RN-01), excepciones por permiso especial activo (RN-02) y genera automáticamente un `RegistroAcceso` (RN-04 y RN-05).
-- **Consulta segura de auditoría:** `consultarHistorial()` retorna `List<RegistroAcceso>` mediante una **copia defensiva** (`new ArrayList<>(this.registros)`), protegiendo la lista interna de modificaciones externas.
+- **Altas con validación:** `registrarEmpleado` y `registrarSector` verifican datos mínimos, identificadores positivos y duplicados por ID; el alta de empleado también rechaza un DNI repetido.
+- **Gestión de permisos:** `concederPermiso` valida existencia de empleado y sector (CP-12), guarda las referencias registradas, evita duplicados activos y reactiva un permiso revocado en lugar de crear otro; `revocarPermiso` realiza baja lógica delegando en `Permiso.revocar()`.
+- **Verificación de accesos:** `verificarAcceso` evalúa jerarquía con `alcanzaA()` de `NivelAcceso` (RN-01), excepciones por permiso especial activo (RN-02) y genera automáticamente un `RegistroAcceso` (RN-04 y RN-05), incluso cuando el empleado o el sector no existen.
+- **Consulta segura de auditoría:** `consultarHistorial()`, `getEmpleados()`, `getSectores()` y `getPermisos()` retornan **copias defensivas** (`new ArrayList<>(...)`), protegiendo las colecciones internas de modificaciones externas.
+- **Salida controlada:** `mostrarMensajesRegistro` permite silenciar los avisos durante la carga inicial y reactivarlos para las altas del menú.
 
 ## 5.3. `Empleado`
 
 Código actual (`src/Empleado.java`):
 
 ```java
-public class Empleado {
+public final class Empleado {
     private int idEmpleado;
     private int dni;
     private String nombre;
     private String apellido;
     private NivelAcceso nivelAcceso;
+    private boolean registroValido;
 
     public Empleado(int idEmpleado, int dni, String nombre, String apellido,
                     NivelAcceso nivelAcceso) {
+        // Guarda los datos primero: si algo es invalido, el objeto conserva
+        // lo que se intento cargar y resulta mas facil de inspeccionar.
         this.idEmpleado = idEmpleado;
         this.dni = dni;
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.nivelAcceso = nivelAcceso;
+        this.nombre = (nombre == null) ? null : nombre.trim();
+        this.apellido = (apellido == null) ? null : apellido.trim();
+        this.nivelAcceso = (nivelAcceso == null) ? NivelAcceso.NIVEL_1 : nivelAcceso;
+        this.registroValido = false;
+
+        if (this.nombre == null || this.nombre.isEmpty()
+                || this.apellido == null || this.apellido.isEmpty()) {
+            System.out.println("No se puede registrar este empleado porque no tiene nombre o apellido.");
+            return;
+        }
+        if (!esDniValido(this.dni)) {
+            System.out.println("No se puede registrar este empleado porque el DNI no tiene la cantidad de digitos valida (7 u 8 digitos).");
+            return;
+        }
+        if (this.idEmpleado <= 0) {
+            System.out.println("No se puede registrar este empleado porque el ID del empleado debe ser mayor a 0.");
+            return;
+        }
+        this.registroValido = true;
+    }
+
+    public static boolean esDniValido(int dni) {
+        if (dni <= 0) {
+            return false;
+        }
+        String dniTexto = String.valueOf(dni).trim();
+        return dniTexto.length() == 7 || dniTexto.length() == 8;
+    }
+
+    public boolean isRegistroValido() {
+        return registroValido && datosValidos();
+    }
+
+    public void setRegistroValido(boolean registroValido) {
+        // Un objeto solo queda marcado como valido si sus datos realmente lo son.
+        this.registroValido = registroValido && datosValidos();
+    }
+
+    // Recalcula la validez a partir de los datos actuales.
+    public boolean datosValidos() {
+        return idEmpleado > 0
+                && esDniValido(dni)
+                && nombre != null && !nombre.trim().isEmpty()
+                && apellido != null && !apellido.trim().isEmpty()
+                && nivelAcceso != null;
     }
 
     public int getIdEmpleado() { return idEmpleado; }
+    public void setIdEmpleado(int idEmpleado) { /* valida > 0 */ }
     public int getDni() { return dni; }
+    public void setDni(int dni) { /* valida 7 u 8 digitos */ }
     public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { /* valida no vacio y recorta */ }
     public String getApellido() { return apellido; }
-    public NivelAcceso getNivelAcesso() { return nivelAcceso; }
-    public void setNivelAcesso(NivelAcceso nivelAcceso) { this.nivelAcceso = nivelAcceso; }
+    public void setApellido(String apellido) { /* valida no vacio y recorta */ }
+    public NivelAcceso getNivelAcceso() { return nivelAcceso; }
+    public void setNivelAcceso(NivelAcceso nivelAcceso) { /* valida no nulo */ }
+
+    @Override
     public String toString() { /* ... */ }
 }
 ```
+
+La validez no es un dato que el cliente pueda imponer: `isRegistroValido()` combina la
+marca `registroValido` con `datosValidos()`, y `setRegistroValido(true)` vuelve a
+recalcularla. Así, si un setter deja el nombre vacío o el DNI inválido, el empleado no
+puede registrarse aunque alguien intente forzar la bandera.
 
 ## 5.4. Las demás clases
 
 ### `Sector`
 
 ```java
-public class Sector {
+public final class Sector {
     private int idSector;
     private String nombre;
     private NivelAcceso nivelRequerido;
@@ -154,6 +217,13 @@ public class Sector {
         setIdSector(idSector);
         setNombre(nombre);
         setNivelRequerido(nivelRequerido);
+    }
+
+    // Comprueba que el sector tenga los datos minimos para registrarse.
+    public boolean datosValidos() {
+        return idSector > 0
+                && nombre != null && !nombre.trim().isEmpty()
+                && nivelRequerido != null;
     }
 
     public int getIdSector() { return idSector; }
@@ -172,12 +242,13 @@ public class Sector {
 
 Dispone de constructor con parámetros, getters y setters para todos sus campos; el
 constructor valida a través de los setters. El identificador se llama `idSector`
-(ADR-04 aplicado).
+(ADR-04 aplicado). `datosValidos()` permite que `registrarSector()` rechace un sector
+incompleto antes de agregarlo a la colección.
 
 ### `Permiso`
 
 ```java
-public class Permiso {
+public final class Permiso {
     private Empleado empleado;
     private Sector sector;
     private boolean activo;
@@ -194,22 +265,46 @@ public class Permiso {
     public Sector getSector() { return sector; }
     public boolean estaActivo() { return activo; }
     public boolean esEspecial() { return especial; }
-    public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
-    public void setSector(Sector sector) { this.sector = sector; }
+
+    public void setEmpleado(Empleado empleado) {
+        if (empleado == null) { /* avisa y conserva el valor anterior */ return; }
+        this.empleado = empleado;
+    }
+    public void setSector(Sector sector) {
+        if (sector == null) { /* avisa y conserva el valor anterior */ return; }
+        this.sector = sector;
+    }
     public void setActivo(boolean activo) { this.activo = activo; }
     public void setEspecial(boolean especial) { this.especial = especial; }
     public void revocar() { this.activo = false; }
+
+    @Override
+    public String toString() {
+        String estado = activo ? "ACTIVO" : "REVOCADO";
+        String tipo = especial ? "Especial" : "Regular";
+        String emp = (empleado != null) ? empleado.getNombre() + " " + empleado.getApellido() : "Sin empleado";
+        String sec = (sector != null) ? sector.getNombre() : "Sin sector";
+        return "Permiso [" + estado + " | " + tipo + "] Empleado: " + emp + " -> Sector: " + sec;
+    }
 }
 ```
 
-Implementa la baja lógica mediante `revocar()` (`activo = false`) y ofrece setters para reactivación o edición.
+Implementa la baja lógica mediante `revocar()` (`activo = false`) y ofrece setters para
+reactivación o edición. Los setters de `empleado` y `sector` rechazan `null`, de modo que
+un permiso no queda a medio armar. `ControlAcceso.concederPermiso()` reemplaza las
+referencias recibidas por las que están registradas y reactiva el permiso revocado si ya
+existía.
 
 ### `RegistroAcceso`
 
 ```java
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-public class RegistroAcceso {
+public final class RegistroAcceso {
+    private static final DateTimeFormatter FORMATO_FECHA_HORA =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
     private Empleado empleado;
     private Sector sector;
     private LocalDateTime fechaHora;
@@ -217,11 +312,13 @@ public class RegistroAcceso {
     private String motivo;
 
     public RegistroAcceso(Empleado empleado, Sector sector, boolean autorizado, String motivo) {
+        // empleado y sector pueden ser null si el intento se hizo con una
+        // ID que no existe; el motivo explica el rechazo.
         this.empleado = empleado;
         this.sector = sector;
         this.autorizado = autorizado;
-        this.motivo = motivo;
         this.fechaHora = LocalDateTime.now();
+        setMotivo(motivo);   // valida que el motivo no este vacio (CP-11)
     }
 
     public Empleado getEmpleado() { return empleado; }
@@ -229,24 +326,49 @@ public class RegistroAcceso {
     public LocalDateTime getFechaHora() { return fechaHora; }
     public String getMotivo() { return motivo; }
     public boolean isAutorizado() { return autorizado; }
+
     public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
     public void setSector(Sector sector) { this.sector = sector; }
-    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
+    public void setFechaHora(LocalDateTime fechaHora) {
+        if (fechaHora == null) {
+            throw new IllegalArgumentException("La fecha y hora del registro no puede ser nula");
+        }
+        this.fechaHora = fechaHora;
+    }
     public void setAutorizado(boolean autorizado) { this.autorizado = autorizado; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
+    public void setMotivo(String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException("El motivo del registro no puede estar vacio");
+        }
+        this.motivo = motivo.trim();
+    }
 
     @Override
     public String toString() {
-        String nombreEmpleado = (getEmpleado() != null) ? getEmpleado().getNombre() : "sin empleado";
-        String nombreSector = (getSector() != null) ? getSector().getNombre() : "sin sector";
-        String resultado = isAutorizado() ? "PERMITIDO" : "DENEGADO";
-        return "[" + getFechaHora() + "] " + nombreEmpleado + " -> " + nombreSector
-                + " | " + resultado + " | " + getMotivo();
+        String nombreEmpleado = (getEmpleado() == null)
+                ? "Empleado no registrado"
+                : getEmpleado().getNombre() + " " + getEmpleado().getApellido()
+                        + " (ID " + getEmpleado().getIdEmpleado() + ")";
+        String nombreSector = (getSector() == null)
+                ? "Sector inexistente"
+                : getSector().getNombre() + " (ID " + getSector().getIdSector() + ")";
+        String resultado = isAutorizado() ? "AUTORIZADO" : "DENEGADO";
+
+        return getFechaHora().format(FORMATO_FECHA_HORA) + " | "
+                + nombreEmpleado + " | "
+                + nombreSector + " | "
+                + resultado + " | "
+                + getMotivo();
     }
 }
 ```
 
-Asigna la marca temporal mediante `LocalDateTime.now()` en su constructor, provee getters y setters, y dispone de `toString()` legible para inspección y consola.
+Asigna la marca temporal mediante `LocalDateTime.now()` en su constructor, provee getters
+y setters, y dispone de `toString()` legible para inspección y consola. A diferencia del
+resto de las entidades, `empleado` y `sector` **sí admiten `null`**: un intento con una ID
+inexistente también debe quedar auditado, y `toString()` lo muestra como
+"Empleado no registrado" o "Sector inexistente". El motivo, en cambio, es obligatorio:
+`setMotivo()` lanza `IllegalArgumentException` si llega vacío.
 
 ### `NivelAcceso`
 
@@ -261,18 +383,37 @@ public enum NivelAcceso {
     private final int nivel;
     private final String descripcion;
 
+    private NivelAcceso(int nivel, String descripcion) {
+        this.nivel = nivel;
+        this.descripcion = descripcion;
+    }
+
+    public int getNivel() { return nivel; }
+    public String getDescripcion() { return descripcion; }
+
     public boolean alcanzaA(NivelAcceso nivelRequerido) {
-        return nivelRequerido != null && this.nivel >= nivelRequerido.getNivel();
+        if (nivelRequerido == null) {
+            return false;
+        }
+        return this.nivel >= nivelRequerido.getNivel();
     }
 }
 ```
 
 La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el valor numérico
-(`getNivel()`) de cada nivel.
+(`getNivel()`) de cada nivel. Un nivel `null` no alcanza a ningún sector.
 
 ### `Main`
 
-`Main.java` implementa un menú interactivo por consola que permite dar de alta empleados con validación de nivel y registrarlos en la instancia única de `ControlAcceso`.
+`Main.java` implementa un menú interactivo por consola que permite dar de alta empleados
+con validación de nivel, registrar sectores, conceder y revocar permisos, verificar
+accesos, consultar el historial y reasignar el nivel de un empleado ya registrado
+(opción 10), todo contra la instancia única de `ControlAcceso`.
+
+La opción 9 ejecuta `funcionDemostracionAutomatica(ControlAcceso)`: compara dos llamadas a
+`getInstance()`, registra datos de prueba solo si no existen y recorre el flujo de nivel,
+permiso especial, revocación e historial. Es idempotente, así que puede repetirse sin
+duplicar datos.
 
 ## 5.5. Brecha entre diseño e implementación
 
@@ -286,13 +427,14 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | `verificarAcceso` | Evalúa nivel, permiso especial y genera registro | ✅ |
 | Registro del intento | Se genera automáticamente en `verificarAcceso` | ✅ |
 | Historial | `consultarHistorial()` devuelve `List<RegistroAcceso>` (copia defensiva) | ✅ |
-| `Empleado` | 6 atributos (incluye `registroValido`), constructor con validación, getters, setters y `toString()` | ✅ |
-| `Sector` | `idSector`, constructor que valida vía setters, getters, setters y `toString()` | ✅ |
-| `Permiso` | `boolean especial`, constructor, setters y `revocar()` funcional | ✅ |
-| `RegistroAcceso` | `LocalDateTime.now()`, getters, setters y `toString()` | ✅ |
+| `Empleado` | 6 atributos (incluye `registroValido`), constructor con validación, `esDniValido()`, `datosValidos()`, getters, setters y `toString()` | ✅ |
+| `Sector` | `idSector`, constructor que valida vía setters, `datosValidos()`, getters, setters y `toString()` | ✅ |
+| `Permiso` | `boolean especial`, constructor, setters con validación de nulos y `revocar()` funcional | ✅ |
+| `RegistroAcceso` | `LocalDateTime.now()`, getters, setters con validación de fecha/motivo y `toString()` | ✅ |
 | `NivelAcceso` | Enum `NIVEL_1`…`NIVEL_5` con valor numérico y `alcanzaA()` | ✅ |
 | `TipoPermiso` | No existe (se usa `boolean especial`) | ❌ |
-| `Main` interactivo | Menú por consola conectado al Singleton | ✅ |
+| `Main` interactivo | Menú por consola con demostración automática idempotente y opción para asignar nivel | ✅ |
+| Clases del dominio | `final` en `ControlAcceso`, `Empleado`, `Sector`, `Permiso` y `RegistroAcceso` | ✅ |
 
 ## 5.6. Plan de métodos de `ControlAcceso`
 
@@ -307,9 +449,11 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | Verificar acceso | `boolean verificarAcceso(int numEmpleado, int numSector)` | RN-01, RN-02, RN-04, RN-05 | ✅ Implementado |
 | Consultar historial | `List<RegistroAcceso> consultarHistorial()` | Copia defensiva de intentos | ✅ Implementado |
 | Buscar empleado | `Empleado buscarEmpleado(int idEmpleado)` | Auxiliar de verificación | ✅ Implementado |
+| Buscar empleado por DNI | `Empleado buscarEmpleadoPorDni(int dni)` | Evita DNI repetidos en el alta | ✅ Implementado |
 | Buscar sector | `Sector buscarSector(int idSector)` | Auxiliar de verificación | ✅ Implementado |
 | Buscar permiso | `Permiso buscarPermiso(Empleado, Sector)` | Reutilizado por conceder/revocar/verificar | ✅ Implementado |
 | Permiso especial activo | `boolean tienePermisoEspecialActivo(Empleado, Sector)` | RN-02 | ✅ Implementado |
+| Mensajes de registro | `void setMostrarMensajesRegistro(boolean mostrar)` | Silencia o reactiva avisos de alta | ✅ Implementado |
 
 ## 5.7. Cumplimiento de las reglas del proyecto
 
@@ -325,6 +469,8 @@ La comparación acumulativa se realiza mediante `alcanzaA()`, que compara el val
 | Método público de instancia (Singleton) | ✅ (`getInstance()`) |
 | Atributos privados | ✅ |
 | Getters y setters en todos los atributos | ✅ Implementados en todas las clases del modelo |
+| Clases sin herencia no prevista | ✅ Las cinco clases del dominio se declaran `final` (ADR-09) |
+| Compilación limpia | ✅ `javac -Xlint:all` sin advertencias |
 
 ---
 

@@ -1,5 +1,5 @@
 @startuml uml-clases
-' Diagrama de clases de la Sección II, alineado al código de src/.
+' Diagrama de clases de la Sección II, alineado al código de src/ (main, 2026-11-27).
 ' Renderizar con PlantUML y exportar como uml-clases.png para el documento de entrega.
 
 skinparam classAttributeIconSize 0
@@ -13,8 +13,10 @@ class ControlAcceso {
   -sectores : List<Sector>
   -permisos : List<Permiso>
   -registros : List<RegistroAcceso>
+  -mostrarMensajesRegistro : boolean
   -ControlAcceso()
   {static} +getInstance() : ControlAcceso
+  +setMostrarMensajesRegistro(mostrar : boolean) : void
   +registrarEmpleado(empleado : Empleado) : void
   +registrarSector(sector : Sector) : void
   +asignarNivel(empleado : Empleado, nivelAcceso : NivelAcceso) : void
@@ -26,6 +28,7 @@ class ControlAcceso {
   +getSectores() : List<Sector>
   +getPermisos() : List<Permiso>
   +buscarEmpleado(idEmpleado : int) : Empleado
+  +buscarEmpleadoPorDni(dni : int) : Empleado
   +buscarSector(idSector : int) : Sector
   -buscarPermiso(empleado : Empleado, sector : Sector) : Permiso
   -tienePermisoEspecialActivo(empleado : Empleado, sector : Sector) : boolean
@@ -37,11 +40,20 @@ class Empleado {
   -nombre : String
   -apellido : String
   -nivelAcceso : NivelAcceso
+  -registroValido : boolean
   +Empleado(idEmpleado : int, dni : int, nombre : String, apellido : String, nivelAcceso : NivelAcceso)
+  {static} +esDniValido(dni : int) : boolean
+  +isRegistroValido() : boolean
+  +setRegistroValido(registroValido : boolean) : void
+  +datosValidos() : boolean
   +getIdEmpleado() : int
+  +setIdEmpleado(idEmpleado : int) : void
   +getDni() : int
+  +setDni(dni : int) : void
   +getNombre() : String
+  +setNombre(nombre : String) : void
   +getApellido() : String
+  +setApellido(apellido : String) : void
   +getNivelAcceso() : NivelAcceso
   +setNivelAcceso(nivelAcceso : NivelAcceso) : void
   +toString() : String
@@ -52,6 +64,7 @@ class Sector {
   -nombre : String
   -nivelRequerido : NivelAcceso
   +Sector(idSector : int, nombre : String, nivelRequerido : NivelAcceso)
+  +datosValidos() : boolean
   +getIdSector() : int
   +getNombre() : String
   +getNivelRequerido() : NivelAcceso
@@ -128,8 +141,14 @@ class Main {
   {static} +funcionRevocarPermiso(entradaDatos : Scanner, control : ControlAcceso) : void
   {static} +funcionVerificarAcceso(entradaDatos : Scanner, control : ControlAcceso) : void
   {static} +funcionConsultarHistorial(control : ControlAcceso) : void
+  {static} +funcionDemostracionAutomatica(control : ControlAcceso) : void
   {static} +main(args : String[]) : void
 }
+
+note bottom of ControlAcceso
+  ControlAcceso, Empleado, Sector, Permiso y RegistroAcceso
+  se declaran como clases finales.
+end note
 
 ControlAcceso "1" o-- "*" Empleado : administra
 ControlAcceso "1" o-- "*" Sector : administra
